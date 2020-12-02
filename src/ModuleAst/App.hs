@@ -271,10 +271,16 @@ fillInterval (index, LineAst line asts) =
 generateDom :: [LineAst] -> ModuleInfo
 generateDom linesAsts =
   ModuleInfo { _minfo_asts = linesAsts >>= _lineAst_asts
-             , _minfo_fileContent = linesAsts <&> \LineAst{..} ->
-                 List.foldr (go _lineAst_line) "" _lineAst_asts
+             , _minfo_fileContent = linesAsts <&> \line ->
+                 line &
+                 renderLine &
+                 wrapWithPre
              }
   where
+    renderLine :: LineAst -> Text
+    renderLine LineAst{..} =
+      List.foldr (go _lineAst_line) "" _lineAst_asts
+
     go :: Text -> ModuleAst -> Text -> Text
     go line ModuleAst{..} acc =
       case _mast_children of
@@ -292,3 +298,7 @@ generateDom linesAsts =
           line
             & T.drop (Ghc.naturalToInt (_span_colStart))
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
+
+    wrapWithPre :: Text -> Text
+    wrapWithPre line =
+      "<pre>" <> line <> "</pre>"
