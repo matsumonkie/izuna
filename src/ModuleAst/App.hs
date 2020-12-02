@@ -44,7 +44,7 @@ import           Type
 import qualified Data.Text              as T
 import qualified Data.Text.Encoding     as T
 
-import           Debug.Pretty.Simple
+--import           Debug.Pretty.Simple
 
 -- * handler
 
@@ -53,9 +53,9 @@ getModulesAst
   :: (IO.MonadIO m)
   => [String]
   -> m (M.Map FilePath ModuleInfo)
-getModulesAst hieDirPath = do
+getModulesAst hieDir = do
   dynFlags <- IO.liftIO getDynFlags
-  hieFiles <- IO.liftIO $ parseHieFiles [ FilePath.joinPath hieDirPath ]
+  hieFiles <- IO.liftIO $ parseHieFiles [ FilePath.joinPath hieDir ]
   hieFiles
     & filter (not . generatedFile)
     & convertHieFilesToMap
