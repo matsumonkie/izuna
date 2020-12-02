@@ -158,7 +158,7 @@ convertRawModuleToLineAst RawModule{..} =
     linesWithIndex <&> buildDom groupedByLine
   where
     linesWithIndex :: [(Nat, Text)]
-    linesWithIndex = List.zip [(Ghc.intToNatural 1)..] _rawModule_fileContent -- column starts at 1
+    linesWithIndex = List.zip [(Ghc.intToNatural 0)..] _rawModule_fileContent
 
     groupedByLine :: Map Nat [ModuleAst]
     groupedByLine =
@@ -177,10 +177,11 @@ convertRawModuleToLineAst RawModule{..} =
     hieAstToModuleAst :: HieAST PrintedType -> ModuleAst
     hieAstToModuleAst Ghc.Node{..} =
       ModuleAst { _mast_span =
-                  Span { _span_lineStart = Ghc.intToNatural $ Ghc.srcSpanStartLine nodeSpan
-                       , _span_lineEnd   = Ghc.intToNatural $ Ghc.srcSpanEndLine nodeSpan
-                       , _span_colStart  = Ghc.intToNatural $ Ghc.srcSpanStartCol nodeSpan
-                       , _span_colEnd    = Ghc.intToNatural $ Ghc.srcSpanEndCol nodeSpan
+                  -- line and column starts at 1 in hie ast
+                  Span { _span_lineStart = Ghc.intToNatural $ Ghc.srcSpanStartLine nodeSpan - 1
+                       , _span_lineEnd   = Ghc.intToNatural $ Ghc.srcSpanEndLine nodeSpan - 1
+                       , _span_colStart  = Ghc.intToNatural $ Ghc.srcSpanStartCol nodeSpan - 1
+                       , _span_colEnd    = Ghc.intToNatural $ Ghc.srcSpanEndCol nodeSpan - 1
                        }
                 , _mast_specializedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & fst
                 , _mast_generalizedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & snd
@@ -212,10 +213,10 @@ convertRawModuleToLineAst RawModule{..} =
 fillInterval :: (Nat, LineAst) -> LineAst
 fillInterval (index, LineAst line asts) =
   let
-    max = Ghc.intToNatural $  T.length line + 1 -- column starts at 1
+    max = Ghc.intToNatural $  T.length line
     (newMax, filledIntervals) = List.foldr go (max, []) asts
   in
-    LineAst line $ fillBeginning True index 1 newMax filledIntervals
+    LineAst line $ fillBeginning True index 0 newMax filledIntervals
   where
     go :: ModuleAst -> (Nat, [ModuleAst]) -> (Nat, [ModuleAst])
     go moduleAst@ModuleAst{ _mast_children
@@ -289,5 +290,5 @@ generateDom linesAsts =
         fetchTextInSpan :: Span -> Text
         fetchTextInSpan Span{..} =
           line
-            & T.drop (Ghc.naturalToInt (_span_colStart - 1))
+            & T.drop (Ghc.naturalToInt (_span_colStart))
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
