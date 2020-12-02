@@ -44,7 +44,7 @@ import           Type
 import qualified Data.Text              as T
 import qualified Data.Text.Encoding     as T
 
--- import           Debug.Pretty.Simple
+import           Debug.Pretty.Simple
 
 -- * handler
 
@@ -55,17 +55,13 @@ getModulesAst
   -> m (M.Map FilePath ModuleInfo)
 getModulesAst hieDirPath = do
   dynFlags <- IO.liftIO getDynFlags
-  hieFiles <- IO.liftIO $ parseHieFiles [ hieRootDirectory ]
+  hieFiles <- IO.liftIO $ parseHieFiles [ FilePath.joinPath hieDirPath ]
   hieFiles
     & filter (not . generatedFile)
     & convertHieFilesToMap
     & M.map (\rawModule -> rawModule & convertContentToText & buildAst dynFlags & generateDom)
     & return
   where
-    hieRootDirectory :: FilePath
-    hieRootDirectory =
-      FilePath.pathSeparator : FilePath.joinPath hieDirPath
-
     generatedFile :: HieFile -> Bool
     generatedFile Ghc.HieFile {..} =
       ".stack-work" `List.isPrefixOf` hie_hs_file  ||
@@ -162,7 +158,7 @@ convertRawModuleToLineAst RawModule{..} =
     linesWithIndex <&> buildDom groupedByLine
   where
     linesWithIndex :: [(Nat, Text)]
-    linesWithIndex = List.zip [(Ghc.intToNatural 1)..] _rawModule_fileContent
+    linesWithIndex = List.zip [(Ghc.intToNatural 1)..] _rawModule_fileContent -- column starts at 1
 
     groupedByLine :: Map Nat [ModuleAst]
     groupedByLine =
@@ -176,7 +172,7 @@ convertRawModuleToLineAst RawModule{..} =
         go acc moduleAst@ModuleAst{..} =
           case indexOneLineSpan _mast_span of
             Nothing    -> List.foldl' go acc _mast_children
-            Just index -> M.insertWith (++) index [moduleAst] acc
+            Just index -> M.insertWith (\old new -> new ++ old) index [moduleAst] acc
 
     hieAstToModuleAst :: HieAST PrintedType -> ModuleAst
     hieAstToModuleAst Ghc.Node{..} =
@@ -216,10 +212,10 @@ convertRawModuleToLineAst RawModule{..} =
 fillInterval :: (Nat, LineAst) -> LineAst
 fillInterval (index, LineAst line asts) =
   let
-    max = Ghc.intToNatural $ T.length line
+    max = Ghc.intToNatural $  T.length line + 1 -- column starts at 1
     (newMax, filledIntervals) = List.foldr go (max, []) asts
   in
-    LineAst line $ fillBeginning True index 0 newMax filledIntervals
+    LineAst line $ fillBeginning True index 1 newMax filledIntervals
   where
     go :: ModuleAst -> (Nat, [ModuleAst]) -> (Nat, [ModuleAst])
     go moduleAst@ModuleAst{ _mast_children
@@ -286,15 +282,12 @@ generateDom linesAsts =
       where
         render :: Text -> Text
         render text =
-          let attr =
-                case _mast_specializedType of
-                  Nothing -> ""
-                  Just t  -> " data-specialized-type='" <> T.pack (show t) <> "'"
-          in
-          "<span" <> attr <> ">" <> text <> "</span>"
+          case _mast_specializedType of
+            Nothing -> text
+            Just t  -> "<span data-specialized-type='" <> T.pack t <> "'>" <> text <> "</span>"
 
         fetchTextInSpan :: Span -> Text
         fetchTextInSpan Span{..} =
           line
-            & T.drop (Ghc.naturalToInt _span_colStart - 1) -- hie ast column starts at 1
+            & T.drop (Ghc.naturalToInt (_span_colStart - 1))
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))

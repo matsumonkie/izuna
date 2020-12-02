@@ -54,6 +54,7 @@ data LineAst = LineAst
     { _lineAst_line :: Text
     , _lineAst_asts :: [ModuleAst]
     }
+    deriving Show
 
 data Span = Span
     { _span_lineStart :: Nat
