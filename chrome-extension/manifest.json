@@ -11,7 +11,7 @@
     {
       "matches": ["https://github.com/*"],
       "css": ["contentScript.css"],
-      "js": ["popper.min.js", "contentScript.js"]
+      "js": ["app.js", "popper-2.5.4.min.js", "contentScript.js"]
     }
   ],
   "page_action": {

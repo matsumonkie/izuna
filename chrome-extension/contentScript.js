@@ -1,74 +1,63 @@
-chrome.runtime.sendMessage({ greeting: "hello" }, response => {
-  console.log(response);
-
+/*
+  create a popper notification to be used later on
+*/
+function createPopper () {
   arrow = document.createElement("div");
   arrow.setAttribute("id", "arrow");
   arrow.setAttribute("data-popper-arrow", "");
 
-  tooltip = document.createElement("div");
+  tooltip = document.createElement("pre");
   tooltip.setAttribute("id", "tooltip");
   tooltip.setAttribute("role", "tooltip");
-  //  tooltip.innerHTML = "hello there!";
-  typeInfo = response["src/Lib.hs"]["fileContent"][15];
-  //console.log(typeInfo[15]);
-  //const toShow = typeInfo.demangledOccName + " " + typeInfo.externalId
-  const toShow = "coucou";
-  tooltip.innerHTML = toShow
-
   tooltip.appendChild(arrow)
   document.body.appendChild(tooltip);
-  console.log(1);
-  line = document
-    .querySelectorAll("div[data-file-type='.hs']")[0]
-    .querySelector('tbody')
-    .children[7]
-    .querySelector('td.blob-code')
-    .children[0]
-    .children[2];
+}
 
-  lines = document
-    .querySelectorAll("div[data-file-type='.hs']")[0]
-    .querySelector('tbody')
-    .children[15]
-    .querySelectorAll('td.blob-code');
-
-  const parser = new DOMParser();
-  newDom = parser.parseFromString(typeInfo, "text/html")
-
-  lines.forEach(line => {
-    Array.from(line.children).forEach (child => child.remove());
-    line.appendChild(newDom.documentElement);
-  });
-
-  lines.forEach(line => {
-    line.addEventListener("mouseover", event => {
-      Popper.createPopper(line, tooltip, { placement: 'top' });
+/*
+  attach a display notification event on all code span that have annotations
+*/
+function mkNotificationEvents() {
+  document.querySelectorAll("span[data-specialized-type]").forEach(span => {
+    span.addEventListener("mouseover", event => {
+      Popper.createPopper(span, tooltip, { placement: 'top' });
+      tooltip.innerHTML = span.dataset.specializedType.replaceAll(" -> ", " ⟶ ");
       tooltip.setAttribute('data-show', '');
     });
 
-    line.addEventListener("mouseleave", event => {
+    span.addEventListener("mouseleave", event => {
       tooltip.removeAttribute('data-show');
     });
   });
+}
 
-  /*
-  line.addEventListener("mouseover", event => {
-    //  Popper.createPopper(line, tooltip, { placement: 'top' });
-    Popper.createPopper(line, tooltip, {
-      modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 8],
-          },
-        },
-      ],
-    });
-    tooltip.setAttribute('data-show', '');
-  });
+/*
+  make an elm application for a given row that will handle the display
+ */
+function generateElmAppForRow(response, githubGeneratedRow) {
+  const lineNumberDom = githubGeneratedRow.querySelector('td.blob-num:nth-child(2)');
+  const lineState = lineNumberDom.classList.contains("blob-num-addition") ? "ADDED" : "DELETED";
+  const lineNumber = parseInt(lineNumberDom.dataset.lineNumber) - 1;  // github starts line count at 1
+  const node = githubGeneratedRow.querySelector('td.blob-code');
 
-  line.addEventListener("mouseleave", event => {
-    tooltip.removeAttribute('data-show');
-  });
-  */
+  Elm.Main.init({ flags:
+                  {
+                    lineDom: response["src/Lib.hs"]["fileContent"][lineNumber],
+                    lineState: lineState
+                  },
+                  node: node
+                });
+}
+
+chrome.runtime.sendMessage({ greeting: "hello" }, response => {
+  createPopper();
+
+  githubGeneratedLines = document
+    .querySelectorAll("div[data-file-type='.hs']")[0]
+    .querySelector('tbody')
+    .querySelectorAll('tr[data-hunk]');
+
+  Array.from(githubGeneratedLines).forEach (githubGeneratedRow => generateElmAppForRow(response, githubGeneratedRow));
+
+  mkNotificationEvents();
+
 });

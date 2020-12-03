@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  fetch('http://localhost:3000/api/modulesAst/home/iori/work/Mimizuku/example/.hie')
+  fetch('http://localhost:3000/api/modulesAst/example/.hie')
     .then(r => r.json())
     .then(data => {
       sendResponse(data);
