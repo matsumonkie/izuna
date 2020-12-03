@@ -271,10 +271,7 @@ fillInterval (index, LineAst line asts) =
 generateDom :: [LineAst] -> ModuleInfo
 generateDom linesAsts =
   ModuleInfo { _minfo_asts = linesAsts >>= _lineAst_asts
-             , _minfo_fileContent = linesAsts <&> \line ->
-                 line &
-                 renderLine &
-                 wrapWithPre
+             , _minfo_fileContent = linesAsts <&> renderLine
              }
   where
     renderLine :: LineAst -> Text
@@ -298,7 +295,3 @@ generateDom linesAsts =
           line
             & T.drop (Ghc.naturalToInt (_span_colStart))
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
-
-    wrapWithPre :: Text -> Text
-    wrapWithPre line =
-      "<pre>" <> line <> "</pre>"

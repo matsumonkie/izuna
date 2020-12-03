@@ -5,7 +5,6 @@ import           Data.Function          ((&))
 import qualified Data.Map               as Map
 import qualified Data.Maybe             as Maybe
 import           Data.Text              (Text)
-import qualified Data.Text              as Text
 import           Test.Hspec
 
 import qualified ModuleAst.App          as App
@@ -17,38 +16,37 @@ spec =
     it "0" $ do
       fileContent <- getModuleAst "./test/fixtures/hie/project0"
 
-      fileContent `shouldBe` ["<pre>module Lib</pre>"
-                             ,"<pre>    ( someFunc</pre>"
-                             ,"<pre>    ) where</pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>someFunc :: IO ()</pre>"
-                             ,"<pre>someFunc = <span data-specialized-type='String -> IO ()'>putStrLn</span> <span data-specialized-type='String'>\"someFunc\"</span></pre>"
-                             ]
+      fileContent `shouldBe` ["module Lib"
+                             ,"    ( someFunc"
+                             ,"    ) where"
+                             ,""
+                             ,"someFunc :: IO ()"
+                             ,"someFunc = <span data-specialized-type='String -> IO ()'>putStrLn</span> <span data-specialized-type='String'>\"someFunc\"</span>"]
 
     it "1" $ do
       fileContent <- getModuleAst "./test/fixtures/hie/project1"
-      fileContent `shouldBe` ["<pre>module Lib</pre>"
-                             ,"<pre>    ( someFunc</pre>"
-                             ,"<pre>    ) where</pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>import           Data.Foldable (foldl')</pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>someFunc :: IO ()</pre>"
-                             ,"<pre>someFunc = <span data-specialized-type='String -> IO ()'>putStrLn</span> <span data-specialized-type='String'>\"someFunc\"</span></pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>add :: Int -> Int -> Int</pre>"
-                             ,"<pre>add <span data-specialized-type='Int'>x</span> <span data-specialized-type='Int'>y</span> =</pre>"
-                             ,"<pre>  <span data-specialized-type='Int'>x</span> <span data-specialized-type='Int -> Int -> Int'>+</span> <span data-specialized-type='Int'>y</span></pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>sum :: [Int] -> Int</pre>"
-                             ,"<pre>sum <span data-specialized-type='[Int]'>xs</span> =</pre>"
-                             ,"<pre>  <span data-specialized-type='(Int -> Int -> Int) -> Int -> [Int] -> Int'>foldl'</span> <span data-specialized-type='Int -> Int -> Int'>add</span> <span data-specialized-type='Int'>0</span> <span data-specialized-type='[Int]'>xs</span></pre>"
-                             ,"<pre></pre>"
-                             ,"<pre>foo :: String</pre>"
-                             ,"<pre>foo =</pre>"
-                             ,"<pre>  let x = <span data-specialized-type='Integer'>42</span></pre>"
-                             ,"<pre>  in <span data-specialized-type='Integer -> String'>show</span> <span data-specialized-type='Integer'>x</span></pre>"
-                             ]
+      fileContent `shouldBe` ["module Lib"
+                             ,"    ( someFunc"
+                             ,"    ) where"
+                             ,""
+                             ,"import           Data.Foldable (foldl')"
+                             ,""
+                             ,"someFunc :: IO ()"
+                             ,"someFunc = <span data-specialized-type='String -> IO ()'>putStrLn</span> <span data-specialized-type='String'>\"someFunc\"</span>"
+                             ,""
+                             ,"add :: Int -> Int -> Int"
+                             ,"add <span data-specialized-type='Int'>x</span> <span data-specialized-type='Int'>y</span> ="
+                             ,"  <span data-specialized-type='Int'>x</span> <span data-specialized-type='Int -> Int -> Int'>+</span> <span data-specialized-type='Int'>y</span>"
+                             ,""
+                             ,"sum :: [Int] -> Int"
+                             ,"sum <span data-specialized-type='[Int]'>xs</span> ="
+                             ,"  <span data-specialized-type='(Int -> Int -> Int) -> Int -> [Int] -> Int'>foldl'</span> <span data-specialized-type='Int -> Int -> Int'>add</span> <span data-specialized-type='Int'>0</span> <span data-specialized-type='[Int]'>xs</span>"
+                             ,""
+                             ,"foo :: String"
+                             ,"foo ="
+                             ,"  let x = <span data-specialized-type='Integer'>42</span>"
+                             ,"  in <span data-specialized-type='Integer -> String'>show</span> <span data-specialized-type='Integer'>x</span>"]
+
 
 getModuleAst :: FilePath -> IO [Text]
 getModuleAst filePath = do
