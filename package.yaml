@@ -62,6 +62,7 @@ dependencies:
 - optparse-applicative
 - regex-tdfa
 - servant-server
+- servant-flatten
 - wai-cors
 - stm
 - text
@@ -78,6 +79,7 @@ dependencies:
 - array
 - ghc-paths
 - pretty-simple
+- directory
 
 library:
   source-dirs: src

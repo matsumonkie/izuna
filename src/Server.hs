@@ -18,22 +18,22 @@ import qualified Network.Wai.Handler.Warp    as Warp
 import qualified Network.Wai.Middleware.Cors as Wai
 import qualified Say
 import           Servant                     hiding (BadPassword, NoSuchUser)
+import           Servant.API.Flatten         (Flat)
 
 import           ModuleAst.App
 import           ModuleAst.Model
+import           ProjectInfo.App
 
------
 -- * run
------
+
 run :: IO ()
 run = do
   Say.sayString "running server!"
   app :: Application <- mkApp "" <&> cors
   Warp.run 3000 app
 
------
 -- * cors
------
+
 cors :: Middleware
 cors =
   Wai.cors onlyRequestForCors
@@ -62,16 +62,13 @@ cors =
     allowedRequestHeaders =
       [ "content-type"
       , "x-xsrf-token"
-      -- Safari needs headers to be allowed
-      -- yet it still request to runner still get blocked :-(
       , "accept"
       , "accept-language"
       , "content-language"
       ] <&> CI.mk
 
------
 -- * mk app
------
+
 mkApp :: String -> IO Application
 mkApp env = do
   let
@@ -81,27 +78,41 @@ mkApp env = do
     serveWithContext webApiProxy context $
       hoistServerWithContext webApiProxy (Proxy :: Proxy '[]) (appMToHandler env) apiServer
 
------
 -- * api
------
+
 type WebApi =
-  ModuleAstApi
+  ModuleAstApi :<|> ProjectInfoApi
 
 apiServer :: ServerT WebApi AppM
 apiServer =
-  modulesAstServer
+  modulesAstServer :<|> projectInfoServer
 
+-- ** module ast
 
 type ModuleAstApi =
-  "api" :> "modulesAst" :> CaptureAll "hieDirPath" FilePath :> Get '[JSON] ModulesAst
+  "api" :> "modulesAst" :> Capture "repo" String :> Capture "user" String :> CaptureAll "hieDirPath" FilePath :> Get '[JSON] ModulesAst
 
 modulesAstServer :: ServerT ModuleAstApi AppM
 modulesAstServer = do
   getModulesAst
 
------
--- * appm
------
+-- ** save project info
+
+type ProjectInfoApi =
+  Flat (
+    "api" :> "projectInfo" :> Capture "repo" String :> Capture "user" String :> Capture "commit" String :> (
+      ReqBody '[JSON] ModulesAst :> Post '[JSON] () :<|>
+      Get '[JSON] ModulesAst
+    )
+  )
+
+projectInfoServer :: ServerT ProjectInfoApi AppM
+projectInfoServer = do
+  saveProjectInfoHandler :<|> getProjectInfoHandler
+
+
+-- * app
+
 newtype AppM a =
   AppM { unAppM :: Except.ExceptT ServerError (Reader.ReaderT String IO) a }
   deriving ( Except.MonadError ServerError

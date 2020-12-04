@@ -50,7 +50,7 @@ spec =
 
 getModuleAst :: FilePath -> IO [Text]
 getModuleAst filePath = do
-  mapFileToModule <- IO.liftIO $ App.getModulesAst [filePath]
+  mapFileToModule <- IO.liftIO $ App.getModulesAst "" "" [filePath]
   mapFileToModule &
     Map.elems &
     Maybe.listToMaybe &

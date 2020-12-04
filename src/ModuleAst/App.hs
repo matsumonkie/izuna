@@ -51,9 +51,11 @@ import qualified Data.Text.Encoding     as T
 
 getModulesAst
   :: (IO.MonadIO m)
-  => [String]
+  => String
+  -> String
+  -> [String]
   -> m (M.Map FilePath ModuleInfo)
-getModulesAst hieDir = do
+getModulesAst _ _ hieDir = do
   dynFlags <- IO.liftIO getDynFlags
   hieFiles <- IO.liftIO $ parseHieFiles [ FilePath.joinPath hieDir ]
   hieFiles
@@ -293,5 +295,5 @@ generateDom linesAsts =
         fetchTextInSpan :: Span -> Text
         fetchTextInSpan Span{..} =
           line
-            & T.drop (Ghc.naturalToInt (_span_colStart))
+            & T.drop (Ghc.naturalToInt _span_colStart)
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))

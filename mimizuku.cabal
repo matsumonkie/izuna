@@ -32,6 +32,7 @@ library
       ModuleAst.App
       ModuleAst.Model
       ModuleAst.RecoverType
+      ProjectInfo.App
       Server
       Type
   other-modules:
@@ -63,6 +64,7 @@ library
     , regex-tdfa
     , safe-exceptions
     , say
+    , servant-flatten
     , servant-server
     , stm
     , text
@@ -105,6 +107,7 @@ executable mimizuku-exe
     , regex-tdfa
     , safe-exceptions
     , say
+    , servant-flatten
     , servant-server
     , stm
     , text
@@ -151,6 +154,7 @@ test-suite spec
     , safe-exceptions
     , say
     , servant-client
+    , servant-flatten
     , servant-server
     , stm
     , text

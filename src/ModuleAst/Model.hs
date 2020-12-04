@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module ModuleAst.Model ( RawModule(..)
                        , ModuleAst(..)
                        , ModulesAst
@@ -11,24 +13,19 @@ module ModuleAst.Model ( RawModule(..)
 -- * imports
 
 
--- ** base
-
---import           Data.Function    ((&))
---import           Data.Functor     ((<&>))
-
 -- ** aeson
 
-import           Data.Aeson ((.=))
-import qualified Data.Aeson as Aeson
---import qualified Data.Aeson.Types as Aeson
+import qualified Data.Aeson   as Aeson
 
 -- ** array
 
-import           Data.Array (Array)
+import           Data.Array   (Array)
 
-{-
+
 -- ** ghc
 
+import           GHC.Generics
+{-
 import qualified BasicTypes as Ghc
 import qualified FastString as Ghc
 import qualified GhcPlugins as Ghc
@@ -43,38 +40,15 @@ import           Type
 
 -- * model
 
+-- ** final
 
-data RawModule ast line = RawModule
-    { _rawModule_hieTypes    :: Array TypeIndex HieTypeFlat
-    , _rawModule_hieAst      :: HieAST ast
-    , _rawModule_fileContent :: line
-    }
-
-data LineAst = LineAst
-    { _lineAst_line :: Text
-    , _lineAst_asts :: [ModuleAst]
-    }
-    deriving Show
-
-data Span = Span
-    { _span_lineStart :: Nat
-    , _span_lineEnd   :: Nat
-    , _span_colStart  :: Nat
-    , _span_colEnd    :: Nat
-    }
-    deriving (Show, Eq)
-
-isOneLine :: Span -> Bool
-isOneLine Span{..} =
-  _span_lineStart == _span_lineEnd
+type ModulesAst = Map FilePath ModuleInfo
 
 data ModuleInfo = ModuleInfo
     { _minfo_asts        :: [ModuleAst]
     , _minfo_fileContent :: [Text]
     }
-    deriving Show
-
-type ModulesAst = Map FilePath ModuleInfo
+    deriving (Show, Generic)
 
 data ModuleAst = ModuleAst
     { _mast_span            :: Span
@@ -82,36 +56,80 @@ data ModuleAst = ModuleAst
     , _mast_generalizedType :: Maybe String
     , _mast_children        :: [ModuleAst]
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic)
 
-instance Ord ModuleAst where
-  compare moduleAst1 moduleAst2 =
-    compare (showCoord moduleAst1) (showCoord moduleAst2)
-    where
-      showCoord :: ModuleAst -> String
-      showCoord ModuleAst{ _mast_span = Span{..} } =
-        show _span_lineStart <> ":" <> show _span_lineStart <> ":" <> show _span_colStart <> ":" <> show _span_colEnd
+data Span = Span
+    { _span_lineStart :: Nat
+    , _span_lineEnd   :: Nat
+    , _span_colStart  :: Nat
+    , _span_colEnd    :: Nat
+    }
+    deriving (Show, Eq, Generic)
+
+isOneLine :: Span -> Bool
+isOneLine Span{..} =
+  _span_lineStart == _span_lineEnd
+
+-- ** initial
+
+
+data RawModule ast line = RawModule
+    { _rawModule_hieTypes    :: Array TypeIndex HieTypeFlat
+    , _rawModule_hieAst      :: HieAST ast
+    , _rawModule_fileContent :: line
+    }
+
+-- ** intermediate
+
+data LineAst = LineAst
+    { _lineAst_line :: Text
+    , _lineAst_asts :: [ModuleAst]
+    }
+    deriving Show
 
 
 -- * json
 
+instance Aeson.ToJSON ModuleInfo where
+  toJSON =
+    Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_minfo_" :: String) }
+
+instance Aeson.FromJSON ModuleInfo where
+  parseJSON =
+    Aeson.genericParseJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_minfo_" :: String) }
+
+instance Aeson.ToJSON ModuleAst where
+  toJSON =
+    Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_mast_" :: String) }
+
+instance Aeson.FromJSON ModuleAst where
+  parseJSON =
+    Aeson.genericParseJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_mast_" :: String) }
+
+instance Aeson.ToJSON Span where
+  toJSON =
+    Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_span_" :: String) }
+
+instance Aeson.FromJSON Span where
+  parseJSON =
+    Aeson.genericParseJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_span_" :: String) }
+
+
+-- * other
+
+{-
 instance Aeson.ToJSON ModuleInfo where
   toJSON ModuleInfo{..} =
     Aeson.object [ "asts" .= _minfo_asts
                  , "fileContent" .= _minfo_fileContent
                  ]
 
-instance Aeson.ToJSON ModuleAst where
-  toJSON ModuleAst {..} =
-    Aeson.object [ "span" .= _mast_span
-                 , "specializedType" .= _mast_specializedType
-                 , "generalizedType" .= _mast_generalizedType
-                 , "children" .= _mast_children
+instance Aeson.FromJSON ModuleInfo where
+  fromJSON ModuleInfo{..} =
+    Aeson.object [ "asts" .= _minfo_asts
+                 , "fileContent" .= _minfo_fileContent
                  ]
-
-instance Aeson.ToJSON Span where
-  toJSON Span{..} =
-    Aeson.toJSON $ show _span_lineStart <> ":" <> show _span_lineEnd <> " " <> show _span_colStart <> ":" <> show _span_colEnd
+-}
 
 {-
 instance Aeson.ToJSON (Ghc.IdentifierDetails PrintedType) where
@@ -119,11 +137,7 @@ instance Aeson.ToJSON (Ghc.IdentifierDetails PrintedType) where
     Aeson.object [ "identType" .= identType
                  , "identInfo" .= (identInfo & S.elems <&> show <&> T.pack)
                  ]
--}
 
--- * other
-
-{-
 instance Aeson.ToJSON (Ghc.HieType Ghc.TypeIndex) where
   toJSON = \case
     Ghc.HTyVarTy name -> Aeson.toJSON $ "HTyVarTy: " <> Ghc.nameStableString name
