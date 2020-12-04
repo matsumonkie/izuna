@@ -1,0 +1,6 @@
+resolver: nightly-2020-08-14
+packages:
+- .
+
+extra-deps:
+- servant-flatten-0.2
