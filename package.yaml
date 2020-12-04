@@ -1,6 +1,6 @@
-name:                mimizuku
+name:                izuna
 version:             0.1.0.0
-github:              "matsumonkie/mimizuku"
+github:              "matsumonkie/izuna"
 license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -85,7 +85,7 @@ library:
   source-dirs: src
 
 executables:
-  mimizuku-exe:
+  izuna-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -93,7 +93,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - mimizuku
+    - izuna
 
 tests:
   spec:
@@ -104,6 +104,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - mimizuku
+    - izuna
     - hspec
     - servant-client

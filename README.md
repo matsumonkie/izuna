@@ -7,7 +7,7 @@ Izuna only works with project built with stack, GHC 8.10.2 and when browsing git
 
 ### How to build
 
-build: `make app GHC=8.10.2`
+build: `make build GHC=8.10.2`
 run: `make run GHC=8.10.2`
 devel: `make devel GHC=8.10.2`. This will start a ghcid session that will run your project and restart the server on every code changes.
 

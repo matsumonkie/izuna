@@ -1,4 +1,4 @@
-PACKAGE=mimizuku
+PACKAGE=izuna
 STACK=stack --stack-yaml=stack-$(GHC).yaml
 
 run:
@@ -7,8 +7,11 @@ run:
 fast:
 	clear; echo "building $(PACKAGE)"; $(STACK) build $(PACKAGE) --fast -j 2
 
-app:
-	clear; echo "building $(PACKAGE)"; $(STACK) $(PACKAGE) --ghc-options="-threaded -rtsopts -with-rtsopts=-T -Werror"
+build:
+	clear; echo "building $(PACKAGE)"; $(STACK) build $(PACKAGE) --ghc-options="-threaded -rtsopts -with-rtsopts=-T -Werror"
+
+clean:
+	clear; echo "cleaning $(PACKAGE)"; $(STACK) clean $(PACKAGE)
 
 devel:
 	clear; LC_ALL=C.UTF-8 ghcid --command "$(STACK) ghci $(PACKAGE)" --test "DevelMain.update"
