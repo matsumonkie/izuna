@@ -1,4 +1,4 @@
-# Izuna
+# izuna
 
 Izuna is a tool to help you code review your Haskell project on Github. It shows type annotations directly in Github interface.
 Izuna only works with project built with stack, GHC 8.10.2 and when browsing github with Chrome.
