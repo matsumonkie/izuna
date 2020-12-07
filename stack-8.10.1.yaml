@@ -7,3 +7,7 @@ extra-deps:
 - servant-flatten-0.2
 - servant-server-0.18.2@sha256:56679af62ab8820a2108da6153d9ae9dde37199e62172365bdaea1458c3f7c2d,5482
 - servant-0.18.2@sha256:f8c9f0e9891a3ada1337a3c0b369333a3b5a2d0909dd3cd09d79bc26adeaca44,5298
+
+nix:
+  enable: true
+  packages: [ zlib ]
