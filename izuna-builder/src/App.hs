@@ -1,7 +1,5 @@
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds       #-}
 
 module App(run) where
 
@@ -9,8 +7,8 @@ import           Options.Applicative (execParser)
 import qualified Say
 
 import           BuilderConfig.App
-import           ModuleAst.App
-import           ModuleAst.Model
+import           ProjectInfo.App
+import           ProjectInfo.Model
 
 -- * run
 

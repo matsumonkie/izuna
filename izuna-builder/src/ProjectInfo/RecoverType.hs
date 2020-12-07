@@ -1,22 +1,20 @@
-module ModuleAst.RecoverType ( getDynFlags
-                             , recoverTypes
-                             ) where
+module ProjectInfo.RecoverType ( getDynFlags
+                               , recoverTypes
+                               ) where
 
-import qualified Data.Array      as A
+import qualified Data.Array        as A
 
-import           ModuleAst.Model
-import           Type
-
-import qualified CoreMonad       as Ghc
-import           HieTypes        (HieArgs (..), HieType (..))
+import qualified CoreMonad         as Ghc
+import qualified GHC               as Ghc
+import qualified GHC.Paths         as Ghc
+import           HieTypes          (HieArgs (..), HieType (..))
 import           IfaceType
-import           Name            (getOccFS)
-import           Outputable      (showSDoc)
-import           Var             (VarBndr (..))
+import           Name              (getOccFS)
+import           Outputable        (showSDoc)
+import           Var               (VarBndr (..))
 
---import           DynFlags     (defaultDynFlags)
-import qualified GHC             as Ghc
-import qualified GHC.Paths       as Ghc
+import           ProjectInfo.Model
+import           Type
 
 -- * get dyn flags
 

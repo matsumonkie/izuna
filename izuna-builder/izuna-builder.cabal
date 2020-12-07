@@ -27,10 +27,10 @@ library
       BuilderConfig.App
       HieFile.App
       Json
-      ModuleAst.App
-      ModuleAst.Model
-      ModuleAst.RecoverType
       NonEmptyString
+      ProjectInfo.App
+      ProjectInfo.Model
+      ProjectInfo.RecoverType
       Type
   other-modules:
       Paths_izuna_builder

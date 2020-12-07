@@ -1,41 +1,41 @@
-module ModuleAst.App ( getProjectInfo
+module ProjectInfo.App ( getProjectInfo
                      ) where
 
 -- * imports
 
 -- ** base
 
-import           Data.Function         ((&))
-import           Data.Functor          ((<&>))
-import qualified Data.List             as List
+import           Data.Function           ((&))
+import           Data.Functor            ((<&>))
+import qualified Data.List               as List
 
 -- ** maybe
 
-import qualified Data.Maybe            as Maybe
+import qualified Data.Maybe              as Maybe
 
 -- ** containers
 
-import qualified Data.Map              as M
+import qualified Data.Map                as M
 
 -- ** ghc
 
-import qualified FastString            as Ghc
-import qualified GHC.Natural           as Ghc
-import qualified HieTypes              as Ghc
-import qualified SrcLoc                as Ghc
+import qualified FastString              as Ghc
+import qualified GHC.Natural             as Ghc
+import qualified HieTypes                as Ghc
+import qualified SrcLoc                  as Ghc
 
 -- ** local
 
 import           BuilderConfig.App
 import           HieFile.App
-import           ModuleAst.Model
-import           ModuleAst.RecoverType
+import           ProjectInfo.Model
+import           ProjectInfo.RecoverType
 import           Type
 
 -- ** text
 
-import qualified Data.Text             as T
-import qualified Data.Text.Encoding    as T
+import qualified Data.Text               as T
+import qualified Data.Text.Encoding      as T
 
 --import           Debug.Pretty.Simple
 
@@ -169,7 +169,7 @@ convertRawModuleToLineAst RawModule{..} =
         go acc moduleAst@ModuleAst{..} =
           case indexOneLineSpan _mast_span of
             Nothing    -> List.foldl' go acc _mast_children
-            Just index -> M.insertWith (\old new -> new ++ old) index [moduleAst] acc
+            Just index -> M.insertWith (flip (++)) index [moduleAst] acc
 
     hieAstToModuleAst :: HieAST PrintedType -> ModuleAst
     hieAstToModuleAst Ghc.Node{..} =

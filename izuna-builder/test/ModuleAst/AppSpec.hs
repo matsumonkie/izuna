@@ -9,8 +9,8 @@ import           NonEmptyString
 import           Test.Hspec
 
 import           BuilderConfig.App
-import qualified ModuleAst.App      as App
-import           ModuleAst.Model
+import qualified ProjectInfo.App    as App
+import           ProjectInfo.Model
 
 spec :: Spec
 spec =

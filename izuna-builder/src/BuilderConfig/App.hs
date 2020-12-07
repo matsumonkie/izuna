@@ -21,7 +21,6 @@ parserInfo = info (builderConfigParser <**> helper)
   <> progDesc "Print a greeting for TARGET"
   <> header "hello - a test for optparse-applicative" )
 
-
 builderConfigParser :: Parser BuilderConfig
 builderConfigParser =
   BuilderConfig

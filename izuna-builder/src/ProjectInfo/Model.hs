@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module ModuleAst.Model ( RawModule(..)
-                       , ModuleAst(..)
-                       , ModulesInfo
-                       , ModuleInfo(..)
-                       , ProjectInfo(..)
-                       , LineAst(..)
-                       , Span(..)
-                       , isOneLine
-                       ) where
+module ProjectInfo.Model ( RawModule(..)
+                         , ModuleAst(..)
+                         , ModulesInfo
+                         , ModuleInfo(..)
+                         , ProjectInfo(..)
+                         , LineAst(..)
+                         , Span(..)
+                         , isOneLine
+                         ) where
 
 
 -- * imports
