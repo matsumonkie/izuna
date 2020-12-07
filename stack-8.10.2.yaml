@@ -1,6 +1,7 @@
 resolver: nightly-2020-11-23
 packages:
-- .
+- izuna-builder
+- izuna-server
 
 extra-deps:
 - servant-flatten-0.2
