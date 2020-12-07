@@ -19,3 +19,7 @@ toString (NonEmptyString nonEmptyStr) =
 instance Aeson.ToJSON NonEmptyString where
   toJSON (NonEmptyString nonEmptyStr)  =
     Aeson.toJSON $ NE.toList nonEmptyStr
+
+instance Aeson.FromJSON NonEmptyString where
+  parseJSON =
+    Aeson.parseJSON

@@ -105,6 +105,10 @@ instance Aeson.ToJSON ProjectInfo where
   toJSON =
     Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_projectInfo_" :: String) }
 
+instance Aeson.FromJSON ProjectInfo where
+  parseJSON =
+    Aeson.genericParseJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_projectInfo_" :: String) }
+
 instance Aeson.ToJSON ModuleInfo where
   toJSON =
     Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_minfo_" :: String) }
