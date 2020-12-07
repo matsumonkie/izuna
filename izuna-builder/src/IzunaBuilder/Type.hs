@@ -23,3 +23,8 @@ type NodeIdentifiers = Ghc.NodeIdentifiers String
 type Text = T.Text
 type Map = M.Map
 type Nat = Natural.Natural
+
+data Username
+data Repo
+data Package
+data Commit

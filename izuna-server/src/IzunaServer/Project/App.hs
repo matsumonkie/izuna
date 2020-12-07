@@ -11,9 +11,12 @@ import qualified Data.Aeson                     as Aeson
 -- ** servant
 
 import qualified Servant
+import           Servant.Multipart              (FileData (..),
+                                                 MultipartData (..), Tmp)
 
 -- ** transformers
 
+import qualified Control.Monad                  as Monad
 import qualified Control.Monad.Except           as Except
 import qualified Control.Monad.IO.Class         as IO
 
@@ -30,31 +33,38 @@ import qualified System.Directory               as Dir
 
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
-import           IzunaServer.Project.Model
+import           IzunaBuilder.Type
 
 -- * save project
 
 saveProjectInfoHandler
   :: (IO.MonadIO m)
-  => ProjectInfo
+  => NonEmptyString Username
+  -> NonEmptyString Repo
+  -> NonEmptyString Package
+  -> NonEmptyString Commit
+  -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler projectInfo@ProjectInfo{..} =
-  IO.liftIO $ createDirectory directoryPath >> saveProjectInfo (directoryPath </> toString _projectInfo_commit) projectInfo
+saveProjectInfoHandler username repo package commit MultipartData{files} =
+  IO.liftIO $
+    createDirectory directoryPath >>
+    Monad.forM_ files (saveProjectInfo (directoryPath </> toString commit))
   where
     directoryPath :: FilePath
     directoryPath =
       FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString _projectInfo_repo
-                        , toString _projectInfo_user
+                        , toString repo
+                        , toString username
+                        , toString package
                         ]
 
     createDirectory :: FilePath -> IO ()
     createDirectory directory =
       Dir.createDirectoryIfMissing True directory
 
-    saveProjectInfo :: FilePath -> ProjectInfo -> IO ()
-    saveProjectInfo filepath projectInfo =
-      Aeson.encodeFile filepath projectInfo
+    saveProjectInfo :: FilePath -> FileData Tmp -> IO ()
+    saveProjectInfo newFilePath FileData{..} = do
+      Dir.copyFile fdPayload newFilePath
 
 
 -- * get project
@@ -62,9 +72,12 @@ saveProjectInfoHandler projectInfo@ProjectInfo{..} =
 
 getProjectInfoHandler
   :: (IO.MonadIO m, Except.MonadError Servant.ServerError m)
-  => Project
+  => NonEmptyString Username
+  -> NonEmptyString Repo
+  -> NonEmptyString Package
+  -> NonEmptyString Commit
   -> m ProjectInfo
-getProjectInfoHandler Project{..} = do
+getProjectInfoHandler username repo package commit = do
   mProjectInfo <- IO.liftIO $ Aeson.decodeFileStrict' filePath
   case mProjectInfo of
     Nothing          -> Servant.throwError Servant.err404
@@ -73,9 +86,10 @@ getProjectInfoHandler Project{..} = do
     filePath :: FilePath
     filePath =
       FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString _project_repo
-                        , toString _project_user
-                        , toString _project_commit
+                        , toString repo
+                        , toString username
+                        , toString package
+                        , toString commit
                         ]
 
 -- * util

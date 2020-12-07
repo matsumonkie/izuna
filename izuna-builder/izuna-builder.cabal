@@ -61,6 +61,7 @@ library
     , regex-tdfa
     , safe-exceptions
     , say
+    , servant
     , stm
     , text
     , transformers
@@ -102,6 +103,7 @@ executable izuna-builder-exe
     , regex-tdfa
     , safe-exceptions
     , say
+    , servant
     , stm
     , text
     , transformers
@@ -146,6 +148,7 @@ test-suite spec
     , regex-tdfa
     , safe-exceptions
     , say
+    , servant
     , servant-client
     , stm
     , text

@@ -78,6 +78,7 @@ dependencies:
 - pretty-simple
 - directory
 - optparse-applicative
+- servant
 
 library:
   source-dirs: src

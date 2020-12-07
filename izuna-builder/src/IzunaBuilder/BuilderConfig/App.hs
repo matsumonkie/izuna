@@ -5,13 +5,14 @@ module IzunaBuilder.BuilderConfig.App ( BuilderConfig(..)
 import           Options.Applicative
 
 import           IzunaBuilder.NonEmptyString
+import           IzunaBuilder.Type
 
 data BuilderConfig = BuilderConfig
     { _builderConfig_hieDirectory :: FilePath
-    , _builderConfig_user         :: NonEmptyString
-    , _builderConfig_repo         :: NonEmptyString
-    , _builderConfig_package      :: NonEmptyString
-    , _builderConfig_commit       :: NonEmptyString
+    , _builderConfig_user         :: NonEmptyString Username
+    , _builderConfig_repo         :: NonEmptyString Repo
+    , _builderConfig_package      :: NonEmptyString Package
+    , _builderConfig_commit       :: NonEmptyString Commit
     , _builderConfig_publicRepo   :: Bool
     }
 

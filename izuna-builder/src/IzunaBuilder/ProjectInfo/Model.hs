@@ -45,10 +45,10 @@ import           IzunaBuilder.Type
 
 data ProjectInfo = ProjectInfo
     { _projectInfo_modulesInfo :: ModulesInfo
-    , _projectInfo_user        :: NonEmptyString
-    , _projectInfo_repo        :: NonEmptyString
-    , _projectInfo_package     :: NonEmptyString
-    , _projectInfo_commit      :: NonEmptyString
+    , _projectInfo_user        :: NonEmptyString Username
+    , _projectInfo_repo        :: NonEmptyString Repo
+    , _projectInfo_package     :: NonEmptyString Package
+    , _projectInfo_commit      :: NonEmptyString Commit
     , _projectInfo_publicRepo  :: Bool
     }
     deriving (Generic)

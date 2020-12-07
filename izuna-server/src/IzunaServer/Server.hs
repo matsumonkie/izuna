@@ -19,10 +19,12 @@ import qualified Network.Wai.Middleware.Cors    as Wai
 import qualified Say
 import           Servant                        hiding (BadPassword, NoSuchUser)
 import           Servant.API.Flatten            (Flat)
+import           Servant.Multipart
 
+import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
+import           IzunaBuilder.Type
 import           IzunaServer.Project.App
-import           IzunaServer.Project.Model
 
 -- * run
 
@@ -81,25 +83,40 @@ mkApp env = do
 -- * api
 
 type WebApi =
-  ProjectInfoApi
+  ProjectInfoApi :<|> HealthApi
 
 apiServer :: ServerT WebApi AppM
 apiServer =
-  projectInfoServer
+  projectInfoServer :<|> healthServer
 
 -- ** save project info
 
 type ProjectInfoApi =
   Flat (
-    "api" :> "projectInfo" :> (
-      ReqBody '[JSON] ProjectInfo :> Post '[JSON] () :<|>
-      ReqBody '[JSON] Project :> Get '[JSON] ProjectInfo
+    "api" :> "projectInfo"
+    :> Capture "username" (NonEmptyString Username)
+    :> Capture "repo" (NonEmptyString Repo)
+    :> Capture "package" (NonEmptyString Package)
+    :> Capture "commit" (NonEmptyString Commit)
+    :> (
+      MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] () :<|>
+      Get '[JSON] ProjectInfo
     )
   )
 
 projectInfoServer :: ServerT ProjectInfoApi AppM
 projectInfoServer = do
   saveProjectInfoHandler :<|> getProjectInfoHandler
+
+-- ** health api
+
+type HealthApi =
+  "api" :> "health" :> Get '[JSON] String
+
+healthServer :: ServerT HealthApi AppM
+healthServer = do
+  return "running!"
+
 
 
 -- * app

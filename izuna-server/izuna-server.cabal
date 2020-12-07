@@ -26,7 +26,6 @@ library
   exposed-modules:
       DevelMain
       IzunaServer.Project.App
-      IzunaServer.Project.Model
       IzunaServer.Server
   other-modules:
       Paths_izuna_server
@@ -49,6 +48,7 @@ library
     , generic-lens
     , ghc
     , ghc-paths
+    , http-client
     , http-types
     , izuna-builder
     , lens
@@ -59,6 +59,7 @@ library
     , safe-exceptions
     , say
     , servant-flatten
+    , servant-multipart
     , servant-server
     , stm
     , text
@@ -92,6 +93,7 @@ executable izuna-server-exe
     , generic-lens
     , ghc
     , ghc-paths
+    , http-client
     , http-types
     , izuna-builder
     , izuna-server
@@ -103,6 +105,7 @@ executable izuna-server-exe
     , safe-exceptions
     , say
     , servant-flatten
+    , servant-multipart
     , servant-server
     , stm
     , text
@@ -138,6 +141,7 @@ test-suite spec
     , ghc
     , ghc-paths
     , hspec
+    , http-client
     , http-types
     , izuna-builder
     , izuna-server
@@ -150,6 +154,7 @@ test-suite spec
     , say
     , servant-client
     , servant-flatten
+    , servant-multipart
     , servant-server
     , stm
     , text

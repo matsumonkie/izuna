@@ -81,6 +81,8 @@ dependencies:
 - pretty-simple
 - directory
 - izuna-builder
+- servant-multipart
+- http-client
 
 library:
   source-dirs: src
