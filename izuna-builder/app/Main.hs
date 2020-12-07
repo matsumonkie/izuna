@@ -1,13 +1,13 @@
 module Main where
 
-import qualified Data.Aeson      as Aeson
-import           Data.Function   ((&))
-import           Data.Functor    ((<&>))
-import qualified Data.List       as List
+import qualified Data.Aeson                     as Aeson
+import           Data.Function                  ((&))
+import           Data.Functor                   ((<&>))
+import qualified Data.List                      as List
 
-import           App
-import           ModuleAst.Model
-import           NonEmptyString  (toString)
+import           IzunaBuilder.App
+import           IzunaBuilder.NonEmptyString    (toString)
+import           IzunaBuilder.ProjectInfo.Model
 
 main :: IO ()
 main = do
