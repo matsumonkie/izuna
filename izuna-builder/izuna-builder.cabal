@@ -115,7 +115,7 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      ModuleAst.AppSpec
+      ProjectInfo.AppSpec
       Paths_izuna_builder
   hs-source-dirs:
       test

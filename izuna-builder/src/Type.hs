@@ -1,28 +1,15 @@
+{- | This module re export common used external types in this project for convenience
+-}
+
 module Type where
 
--- * base
-
-import           Numeric.Natural as Natural
-
--- * ghc
-
-import qualified DynFlags        as Ghc
-import qualified HieTypes        as Ghc
-
--- * text
-
-import qualified Data.Text       as T
-
--- * containers
-
+import qualified Data.ByteString as ByteString
 import qualified Data.Map        as M
 import qualified Data.Set        as S
-
--- * bytestring
-
-import qualified Data.ByteString as ByteString
-
--- * type
+import qualified Data.Text       as T
+import qualified DynFlags        as Ghc
+import qualified HieTypes        as Ghc
+import           Numeric.Natural as Natural
 
 type ByteString = ByteString.ByteString
 type HieTypeFlat = Ghc.HieTypeFlat

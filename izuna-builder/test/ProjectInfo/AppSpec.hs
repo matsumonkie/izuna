@@ -1,4 +1,4 @@
-module ModuleAst.AppSpec where
+module ProjectInfo.AppSpec where
 
 import           Data.Function      ((&))
 import qualified Data.List.NonEmpty as NE
@@ -16,7 +16,7 @@ spec :: Spec
 spec =
   describe "parse hie files to ast" $ do
     it "0" $ do
-      fileContent <- getModuleAst "./izuna-builder/test/fixtures/hie/project0"
+      fileContent <- getModuleAst "./izuna-builder/test/fixtures/hie/project0" "src/Lib.hs"
 
       fileContent `shouldBe` ["module Lib"
                              ,"    ( someFunc"
@@ -26,7 +26,7 @@ spec =
                              ,"someFunc = <span data-specialized-type='String -> IO ()'>putStrLn</span> <span data-specialized-type='String'>\"someFunc\"</span>"]
 
     it "1" $ do
-      fileContent <- getModuleAst "./izuna-builder/test/fixtures/hie/project1"
+      fileContent <- getModuleAst "./izuna-builder/test/fixtures/hie/project1" "src/Lib.hs"
       fileContent `shouldBe` ["module Lib"
                              ,"    ( someFunc"
                              ,"    ) where"
@@ -50,12 +50,11 @@ spec =
                              ,"  in <span data-specialized-type='Integer -> String'>show</span> <span data-specialized-type='Integer'>x</span>"]
 
 
-getModuleAst :: FilePath -> IO [Text]
-getModuleAst filePath = do
+getModuleAst :: FilePath -> FilePath -> IO [Text]
+getModuleAst filePath moduleName = do
   ProjectInfo { _projectInfo_modulesInfo } <- App.getProjectInfo emptyBuilderConfig { _builderConfig_hieDirectory = filePath }
   _projectInfo_modulesInfo &
-    Map.elems &
-    Maybe.listToMaybe &
+    Map.lookup moduleName &
     Maybe.fromMaybe emptyModuleInfo &
     _minfo_fileContent &
     return
@@ -73,5 +72,5 @@ getModuleAst filePath = do
                     , _builderConfig_repo         = NonEmptyString $ NE.fromList "repo"
                     , _builderConfig_package      = NonEmptyString $ NE.fromList "package"
                     , _builderConfig_commit       = NonEmptyString $ NE.fromList "commit"
-                    , _builderConfig_publicRepo  = True
+                    , _builderConfig_publicRepo   = True
                     }

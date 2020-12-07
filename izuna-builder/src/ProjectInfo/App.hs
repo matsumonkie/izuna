@@ -61,8 +61,7 @@ getProjectInfo BuilderConfig{..} = do
   where
     generatedFile :: HieFile -> Bool
     generatedFile Ghc.HieFile {..} =
-      ".stack-work" `List.isPrefixOf` hie_hs_file  ||
-      "app" `List.isPrefixOf` hie_hs_file -- todo: remove, only for dev
+      ".stack-work" `List.isPrefixOf` hie_hs_file
 
     convertHieFilesToMap :: [HieFile] -> M.Map FilePath (RawModule TypeIndex ByteString)
     convertHieFilesToMap hieFiles =
@@ -71,10 +70,10 @@ getProjectInfo BuilderConfig{..} = do
     buildAst :: DynFlags -> RawModule TypeIndex [Text] -> [LineAst]
     buildAst dynFlags rawModule =
       rawModule &
-      recoverTypes dynFlags &         -- RawModule Int ByteString -> RawModule PrintedType ByteString
-      removeUselessNodes &            -- RawModule PrintedType ByteString -> RawModule PrintedType ByteString
-      convertRawModuleToLineAst <&>  -- RawModule PrintedType [Text] ->  [ (Natural, LineAst) ]
-      fillInterval                    -- [ (Natural, LineAst) ] -> LineAst
+      recoverTypes dynFlags &
+      removeUselessNodes &
+      convertRawModuleToLineAst <&>
+      fillInterval
 
 
 -- * convert hie to raw module
