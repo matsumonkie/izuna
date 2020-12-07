@@ -1,4 +1,4 @@
-module NonEmptyString where
+module IzunaBuilder.NonEmptyString where
 
 import qualified Data.Aeson         as Aeson
 import qualified Data.List.NonEmpty as NE

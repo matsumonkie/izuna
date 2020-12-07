@@ -1,7 +1,7 @@
 {- | This module re export common used external types in this project for convenience
 -}
 
-module Type where
+module IzunaBuilder.Type where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.Map        as M

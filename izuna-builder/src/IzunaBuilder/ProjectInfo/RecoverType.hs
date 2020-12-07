@@ -1,20 +1,20 @@
-module ProjectInfo.RecoverType ( getDynFlags
-                               , recoverTypes
-                               ) where
+module IzunaBuilder.ProjectInfo.RecoverType ( getDynFlags
+                                            , recoverTypes
+                                            ) where
 
-import qualified Data.Array        as A
+import qualified Data.Array                     as A
 
-import qualified CoreMonad         as Ghc
-import qualified GHC               as Ghc
-import qualified GHC.Paths         as Ghc
-import           HieTypes          (HieArgs (..), HieType (..))
+import qualified CoreMonad                      as Ghc
+import qualified GHC                            as Ghc
+import qualified GHC.Paths                      as Ghc
+import           HieTypes                       (HieArgs (..), HieType (..))
 import           IfaceType
-import           Name              (getOccFS)
-import           Outputable        (showSDoc)
-import           Var               (VarBndr (..))
+import           Name                           (getOccFS)
+import           Outputable                     (showSDoc)
+import           Var                            (VarBndr (..))
 
-import           ProjectInfo.Model
-import           Type
+import           IzunaBuilder.ProjectInfo.Model
+import           IzunaBuilder.Type
 
 -- * get dyn flags
 

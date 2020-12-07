@@ -1,16 +1,16 @@
 module ProjectInfo.AppSpec where
 
-import           Data.Function      ((&))
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as Map
-import qualified Data.Maybe         as Maybe
-import           Data.Text          (Text)
-import           NonEmptyString
+import           Data.Function                  ((&))
+import qualified Data.List.NonEmpty             as NE
+import qualified Data.Map                       as Map
+import qualified Data.Maybe                     as Maybe
+import           Data.Text                      (Text)
 import           Test.Hspec
 
-import           BuilderConfig.App
-import qualified ProjectInfo.App    as App
-import           ProjectInfo.Model
+import           IzunaBuilder.BuilderConfig.App
+import           IzunaBuilder.NonEmptyString
+import qualified IzunaBuilder.ProjectInfo.App   as App
+import           IzunaBuilder.ProjectInfo.Model
 
 spec :: Spec
 spec =

@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module ProjectInfo.Model ( RawModule(..)
-                         , ModuleAst(..)
-                         , ModulesInfo
-                         , ModuleInfo(..)
-                         , ProjectInfo(..)
-                         , LineAst(..)
-                         , Span(..)
-                         , isOneLine
-                         ) where
+module IzunaBuilder.ProjectInfo.Model ( RawModule(..)
+                                      , ModuleAst(..)
+                                      , ModulesInfo
+                                      , ModuleInfo(..)
+                                      , ProjectInfo(..)
+                                      , LineAst(..)
+                                      , Span(..)
+                                      , isOneLine
+                                      ) where
 
 
 -- * imports
@@ -16,11 +16,11 @@ module ProjectInfo.Model ( RawModule(..)
 
 -- ** aeson
 
-import qualified Data.Aeson     as Aeson
+import qualified Data.Aeson                  as Aeson
 
 -- ** array
 
-import           Data.Array     (Array)
+import           Data.Array                  (Array)
 
 
 -- ** ghc
@@ -36,8 +36,8 @@ import qualified IfaceType  as Ghc
 
 -- ** local
 
-import           NonEmptyString
-import           Type
+import           IzunaBuilder.NonEmptyString
+import           IzunaBuilder.Type
 
 -- * model
 

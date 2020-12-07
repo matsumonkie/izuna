@@ -23,15 +23,15 @@ source-repository head
 
 library
   exposed-modules:
-      App
-      BuilderConfig.App
-      HieFile.App
-      Json
-      NonEmptyString
-      ProjectInfo.App
-      ProjectInfo.Model
-      ProjectInfo.RecoverType
-      Type
+      IzunaBuilder.App
+      IzunaBuilder.BuilderConfig.App
+      IzunaBuilder.HieFile.App
+      IzunaBuilder.Json
+      IzunaBuilder.NonEmptyString
+      IzunaBuilder.ProjectInfo.App
+      IzunaBuilder.ProjectInfo.Model
+      IzunaBuilder.ProjectInfo.RecoverType
+      IzunaBuilder.Type
   other-modules:
       Paths_izuna_builder
   hs-source-dirs:

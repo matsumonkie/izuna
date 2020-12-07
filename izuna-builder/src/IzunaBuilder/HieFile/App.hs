@@ -1,7 +1,7 @@
 {-# language BlockArguments #-}
 
-module HieFile.App ( parseHieFiles
-                   ) where
+module IzunaBuilder.HieFile.App ( parseHieFiles
+                                ) where
 
 -- * import
 

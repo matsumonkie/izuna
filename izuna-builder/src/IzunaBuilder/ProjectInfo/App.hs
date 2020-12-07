@@ -1,41 +1,41 @@
-module ProjectInfo.App ( getProjectInfo
-                     ) where
+module IzunaBuilder.ProjectInfo.App ( getProjectInfo
+                                    ) where
 
 -- * imports
 
 -- ** base
 
-import           Data.Function           ((&))
-import           Data.Functor            ((<&>))
-import qualified Data.List               as List
+import           Data.Function                        ((&))
+import           Data.Functor                         ((<&>))
+import qualified Data.List                            as List
 
 -- ** maybe
 
-import qualified Data.Maybe              as Maybe
+import qualified Data.Maybe                           as Maybe
 
 -- ** containers
 
-import qualified Data.Map                as M
+import qualified Data.Map                             as M
 
 -- ** ghc
 
-import qualified FastString              as Ghc
-import qualified GHC.Natural             as Ghc
-import qualified HieTypes                as Ghc
-import qualified SrcLoc                  as Ghc
+import qualified FastString                           as Ghc
+import qualified GHC.Natural                          as Ghc
+import qualified HieTypes                             as Ghc
+import qualified SrcLoc                               as Ghc
 
 -- ** local
 
-import           BuilderConfig.App
-import           HieFile.App
-import           ProjectInfo.Model
-import           ProjectInfo.RecoverType
-import           Type
+import           IzunaBuilder.BuilderConfig.App
+import           IzunaBuilder.HieFile.App
+import           IzunaBuilder.ProjectInfo.Model
+import           IzunaBuilder.ProjectInfo.RecoverType
+import           IzunaBuilder.Type
 
 -- ** text
 
-import qualified Data.Text               as T
-import qualified Data.Text.Encoding      as T
+import qualified Data.Text                            as T
+import qualified Data.Text.Encoding                   as T
 
 --import           Debug.Pretty.Simple
 

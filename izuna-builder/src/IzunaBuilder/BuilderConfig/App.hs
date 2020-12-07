@@ -1,10 +1,10 @@
-module BuilderConfig.App ( BuilderConfig(..)
+module IzunaBuilder.BuilderConfig.App ( BuilderConfig(..)
                          , parserInfo
                          ) where
 
 import           Options.Applicative
 
-import           NonEmptyString
+import           IzunaBuilder.NonEmptyString
 
 data BuilderConfig = BuilderConfig
     { _builderConfig_hieDirectory :: FilePath

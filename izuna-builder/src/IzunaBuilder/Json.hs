@@ -13,7 +13,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -}
 
-module Json where
+module IzunaBuilder.Json where
 
 {-
 -- * imports
