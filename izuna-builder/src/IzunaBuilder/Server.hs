@@ -27,11 +27,11 @@ import           IzunaBuilder.Type
 
 -- * run
 
-run :: IO ()
-run = do
-  Say.sayString "running izuna-builder!"
+run :: Int -> IO ()
+run port = do
+  Say.sayString $ "running izuna-builder on port: " <> show port
   app :: Application <- mkApp ""
-  Warp.run 3000 app
+  Warp.run port app
 
 -- * mk app
 

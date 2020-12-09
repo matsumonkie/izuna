@@ -59,7 +59,7 @@ update = do
           -> IO ThreadId
     start done =
       myThreadId <* (do
-                run `catch` \(SomeException e) -> do
+                run 3000 `catch` \(SomeException e) -> do
                     say "!!! exception in runAppDevel !!!"
                     say $ "X    exception type: " <> tshow (typeOf e)
                     say $ "X    exception     : " <> tshow e

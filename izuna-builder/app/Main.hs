@@ -1,7 +1,10 @@
 module Main where
 
+import           System.Environment
+
 import           IzunaBuilder.Server (run)
 
 main :: IO ()
-main =
-  run
+main = do
+  [port] <- getArgs
+  run $ read @Int port
