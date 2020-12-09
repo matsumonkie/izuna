@@ -5,3 +5,7 @@ packages:
 
 extra-deps:
 - servant-flatten-0.2
+
+nix:
+  enable: true
+  packages: [ zlib ]
