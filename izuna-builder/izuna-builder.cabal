@@ -37,38 +37,22 @@ library
   hs-source-dirs:
       src
   default-extensions: LambdaCase OverloadedStrings NamedFieldPuns QuasiQuotes ScopedTypeVariables TemplateHaskell RecordWildCards EmptyCase FlexibleContexts FlexibleInstances InstanceSigs MultiParamTypeClasses MultiWayIf StrictData TypeApplications
-  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie
+  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie -Wunused-packages
   build-depends:
       aeson
-    , algebraic-graphs
     , array
     , base >=4.7 && <5
     , bytestring
-    , case-insensitive
     , containers
-    , dhall
     , directory
     , filepath
-    , foreign-store
     , generic-lens
     , ghc
     , ghc-paths
-    , http-types
-    , lens
-    , mtl
     , optparse-applicative
-    , pretty-simple
-    , regex-tdfa
-    , safe-exceptions
     , say
     , servant
-    , stm
     , text
-    , transformers
-    , utf8-string
-    , wai
-    , wai-cors
-    , warp
   default-language: Haskell2010
 
 executable izuna-builder-exe
@@ -78,39 +62,11 @@ executable izuna-builder-exe
   hs-source-dirs:
       app
   default-extensions: LambdaCase OverloadedStrings NamedFieldPuns QuasiQuotes ScopedTypeVariables TemplateHaskell RecordWildCards EmptyCase FlexibleContexts FlexibleInstances InstanceSigs MultiParamTypeClasses MultiWayIf StrictData TypeApplications
-  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie -Wunused-packages -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
-    , algebraic-graphs
-    , array
     , base >=4.7 && <5
-    , bytestring
-    , case-insensitive
-    , containers
-    , dhall
-    , directory
-    , filepath
-    , foreign-store
-    , generic-lens
-    , ghc
-    , ghc-paths
-    , http-types
     , izuna-builder
-    , lens
-    , mtl
-    , optparse-applicative
-    , pretty-simple
-    , regex-tdfa
-    , safe-exceptions
-    , say
-    , servant
-    , stm
-    , text
-    , transformers
-    , utf8-string
-    , wai
-    , wai-cors
-    , warp
   default-language: Haskell2010
 
 test-suite spec
@@ -122,39 +78,11 @@ test-suite spec
   hs-source-dirs:
       test
   default-extensions: LambdaCase OverloadedStrings NamedFieldPuns QuasiQuotes ScopedTypeVariables TemplateHaskell RecordWildCards EmptyCase FlexibleContexts FlexibleInstances InstanceSigs MultiParamTypeClasses MultiWayIf StrictData TypeApplications
-  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -fwrite-ide-info -hiedir=.hie -Wunused-packages -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
-    , algebraic-graphs
-    , array
     , base >=4.7 && <5
-    , bytestring
-    , case-insensitive
-    , containers
-    , dhall
-    , directory
-    , filepath
-    , foreign-store
-    , generic-lens
-    , ghc
-    , ghc-paths
     , hspec
-    , http-types
     , izuna-builder
-    , lens
-    , mtl
-    , optparse-applicative
-    , pretty-simple
-    , regex-tdfa
-    , safe-exceptions
-    , say
-    , servant
     , servant-client
-    , stm
-    , text
-    , transformers
-    , utf8-string
-    , wai
-    , wai-cors
-    , warp
   default-language: Haskell2010
