@@ -1,7 +1,12 @@
-module IzunaBuilder.ProjectInfo.App ( getProjectInfo
+module IzunaBuilder.ProjectInfo.App ( saveProjectInfoHandler
+                                    , buildProjectInfo
                                     ) where
 
 -- * imports
+
+-- ** aeson
+
+import qualified Data.Aeson                           as Aeson
 
 -- ** base
 
@@ -9,6 +14,29 @@ import           Data.Function                        ((&))
 import           Data.Functor                         ((<&>))
 import qualified Data.List                            as List
 
+-- ** tar
+
+import qualified Codec.Archive.Tar                    as Tar
+
+-- ** transformers
+
+import qualified Control.Monad                        as Monad
+--import qualified Control.Monad.Except                 as Except
+import qualified Control.Monad.IO.Class               as IO
+
+-- ** filepath
+
+import           System.FilePath.Posix                ((</>))
+import qualified System.FilePath.Posix                as FilePath
+
+-- ** directory
+
+import qualified System.Directory                     as Dir
+
+-- ** servant
+
+import           Servant.Multipart                    (FileData (..),
+                                                       MultipartData (..), Tmp)
 -- ** maybe
 
 import qualified Data.Maybe                           as Maybe
@@ -24,14 +52,6 @@ import qualified GHC.Natural                          as Ghc
 import qualified HieTypes                             as Ghc
 import qualified SrcLoc                               as Ghc
 
--- ** local
-
-import           IzunaBuilder.BuilderConfig.App
-import           IzunaBuilder.HieFile.App
-import           IzunaBuilder.ProjectInfo.Model
-import           IzunaBuilder.ProjectInfo.RecoverType
-import           IzunaBuilder.Type
-
 -- ** text
 
 import qualified Data.Text                            as T
@@ -39,25 +59,67 @@ import qualified Data.Text.Encoding                   as T
 
 --import           Debug.Pretty.Simple
 
+-- ** async
+
+import qualified Control.Concurrent.Async             as Async
+
+--import           Debug.Pretty.Simple
+
+-- ** local
+
+import           IzunaBuilder.HieFile.App
+import           IzunaBuilder.NonEmptyString
+import           IzunaBuilder.ProjectInfo.Model
+import           IzunaBuilder.ProjectInfo.RecoverType
+import           IzunaBuilder.Type
+
 -- * handler
 
+saveProjectInfoHandler
+  :: (IO.MonadIO m)
+  => NonEmptyString Username
+  -> NonEmptyString Repo
+  -> NonEmptyString Package
+  -> NonEmptyString Commit
+  -> MultipartData Tmp
+  -> m ()
+saveProjectInfoHandler username repo package commit MultipartData{files} = do
+  IO.liftIO $ createDirectory directoryPath
+  IO.liftIO $  Monad.forM_ files $ \file -> do
+    extractHieTar directoryPath file
+    _ <- Async.async (buildProjectInfo directoryPath >>= writeProjectInfo directoryPath)
+    return ()
+  where
+    directoryPath :: FilePath
+    directoryPath =
+      FilePath.joinPath [ defaultProjectInfoBaseDir
+                        , toString username
+                        , toString repo
+                        , toString package
+                        , toString commit
+                        ]
 
-getProjectInfo :: BuilderConfig -> IO ProjectInfo
-getProjectInfo BuilderConfig{..} = do
+    createDirectory :: FilePath -> IO ()
+    createDirectory directory =
+      Dir.createDirectoryIfMissing True directory
+
+    extractHieTar :: FilePath -> FileData Tmp -> IO ()
+    extractHieTar targetFolder FileData{..}=
+      Tar.extract targetFolder fdPayload
+
+
+-- * build project info
+
+buildProjectInfo :: FilePath -> IO ModulesInfo
+buildProjectInfo hieDirectory = do
   dynFlags <- getDynFlags
-  hieFiles <- parseHieFiles [ _builderConfig_hieDirectory ]
-  let modulesInfo =
-        hieFiles &
-        filter (not . generatedFile) &
-        convertHieFilesToMap &
-        M.map (\rawModule -> rawModule & convertContentToText & buildAst dynFlags & generateDom)
-  return $ ProjectInfo { _projectInfo_modulesInfo = modulesInfo
-                       , _projectInfo_user = _builderConfig_user
-                       , _projectInfo_repo = _builderConfig_repo
-                       , _projectInfo_package = _builderConfig_package
-                       , _projectInfo_commit = _builderConfig_commit
-                       , _projectInfo_publicRepo = _builderConfig_publicRepo
-                       }
+  hieFiles <- parseHieFiles [ hieDirectory ]
+  hieFiles &
+    filter (not . generatedFile) &
+    convertHieFilesToMap &
+    M.map (\rawModule -> rawModule & convertContentToText & buildAst
+            dynFlags & generateDom) &
+    return
   where
     generatedFile :: HieFile -> Bool
     generatedFile Ghc.HieFile {..} =
@@ -75,6 +137,11 @@ getProjectInfo BuilderConfig{..} = do
       convertRawModuleToLineAst <&>
       fillInterval
 
+-- * write project info
+
+writeProjectInfo :: FilePath -> ModulesInfo -> IO ()
+writeProjectInfo hieDirectory modulesInfo =
+  Aeson.encodeFile (hieDirectory </> "json") modulesInfo
 
 -- * convert hie to raw module
 
@@ -297,3 +364,8 @@ generateDom linesAsts =
           line
             & T.drop (Ghc.naturalToInt _span_colStart)
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
+
+-- * util
+
+defaultProjectInfoBaseDir :: FilePath
+defaultProjectInfoBaseDir = "./backup"

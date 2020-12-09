@@ -67,6 +67,17 @@ library:
   - text
   - say
   - optparse-applicative
+  - mtl
+  - case-insensitive
+  - http-types
+  - wai
+  - warp
+  - servant-server
+  - servant-multipart
+  - safe-exceptions
+  - foreign-store
+  - async
+  - tar
 
 
 executables:

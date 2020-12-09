@@ -30,4 +30,4 @@ instance Aeson.ToJSON (NonEmptyString a) where
 
 instance Aeson.FromJSON (NonEmptyString a) where
   parseJSON text =
-    fmap NonEmptyString $ Aeson.parseJSON text
+    NonEmptyString <$> Aeson.parseJSON text
