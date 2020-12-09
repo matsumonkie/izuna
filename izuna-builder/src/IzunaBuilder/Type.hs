@@ -24,6 +24,7 @@ type Text = T.Text
 type Map = M.Map
 type Nat = Natural.Natural
 
+data GhcVersion
 data Username
 data Repo
 data Package

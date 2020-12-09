@@ -77,13 +77,14 @@ import           IzunaBuilder.Type
 
 saveProjectInfoHandler
   :: (IO.MonadIO m)
-  => NonEmptyString Username
+  => NonEmptyString GhcVersion
+  -> NonEmptyString Username
   -> NonEmptyString Repo
   -> NonEmptyString Package
   -> NonEmptyString Commit
   -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler username repo package commit MultipartData{files} = do
+saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
   IO.liftIO $ createDirectory directoryPath
   IO.liftIO $  Monad.forM_ files $ \file -> do
     extractHieTar directoryPath file

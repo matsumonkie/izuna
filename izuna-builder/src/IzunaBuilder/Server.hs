@@ -56,7 +56,9 @@ apiServer =
 -- ** save project info
 
 type ProjectInfoApi =
-    "api" :> "projectInfo"
+    "api"
+    :> Capture "ghcVersion" (NonEmptyString GhcVersion)
+    :> "projectInfo"
     :> Capture "username" (NonEmptyString Username)
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
