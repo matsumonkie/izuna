@@ -49,15 +49,14 @@ ghc-options:
 
 dependencies:
 - base >= 4.7 && < 5
-- aeson
 
 library:
   source-dirs: src
   dependencies:
+  - aeson
   - servant
   - generic-lens
   - array
-  - optparse-applicative
   - bytestring
   - containers
   - ghc-paths
@@ -66,10 +65,7 @@ library:
   - filepath
   - text
   - say
-  - optparse-applicative
   - mtl
-  - case-insensitive
-  - http-types
   - wai
   - warp
   - servant-server
