@@ -1,14 +1,11 @@
 module ProjectInfo.AppSpec where
 
 import           Data.Function                  ((&))
-import qualified Data.List.NonEmpty             as NE
 import qualified Data.Map                       as Map
 import qualified Data.Maybe                     as Maybe
 import           Data.Text                      (Text)
 import           Test.Hspec
 
-import           IzunaBuilder.BuilderConfig.App
-import           IzunaBuilder.NonEmptyString
 import qualified IzunaBuilder.ProjectInfo.App   as App
 import           IzunaBuilder.ProjectInfo.Model
 
@@ -52,8 +49,8 @@ spec =
 
 getModuleAst :: FilePath -> FilePath -> IO [Text]
 getModuleAst filePath moduleName = do
-  ProjectInfo { _projectInfo_modulesInfo } <- App.getProjectInfo emptyBuilderConfig { _builderConfig_hieDirectory = filePath }
-  _projectInfo_modulesInfo &
+  modulesInfo <- App.buildProjectInfo filePath
+  modulesInfo &
     Map.lookup moduleName &
     Maybe.fromMaybe emptyModuleInfo &
     _minfo_fileContent &
@@ -64,13 +61,3 @@ getModuleAst filePath moduleName = do
       { _minfo_asts = []
       , _minfo_fileContent = []
       }
-
-    emptyBuilderConfig :: BuilderConfig
-    emptyBuilderConfig =
-      BuilderConfig { _builderConfig_hieDirectory = ""
-                    , _builderConfig_user         = NonEmptyString $ NE.fromList "user"
-                    , _builderConfig_repo         = NonEmptyString $ NE.fromList "repo"
-                    , _builderConfig_package      = NonEmptyString $ NE.fromList "package"
-                    , _builderConfig_commit       = NonEmptyString $ NE.fromList "commit"
-                    , _builderConfig_publicRepo   = True
-                    }
