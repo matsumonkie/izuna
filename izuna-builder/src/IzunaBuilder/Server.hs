@@ -56,7 +56,7 @@ apiServer =
 -- ** save project info
 
 type ProjectInfoApi =
-    "izuna-builder" :> "api" :> "projectInfo"
+    "api" :> "projectInfo"
     :> Capture "username" (NonEmptyString Username)
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
@@ -71,12 +71,11 @@ projectInfoServer = do
 -- ** health api
 
 type HealthApi =
-  "izuna-builder" :> "api" :> "health" :> Get '[JSON] String
+  "api" :> "health" :> Get '[JSON] String
 
 healthServer :: ServerT HealthApi AppM
 healthServer = do
   return "running!"
-
 
 
 -- * app
