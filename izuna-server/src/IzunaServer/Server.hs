@@ -32,7 +32,7 @@ run :: IO ()
 run = do
   Say.sayString "running izuna-server!"
   app :: Application <- mkApp "" <&> cors
-  Warp.run 3000 app
+  Warp.run 3001 app
 
 -- * cors
 
