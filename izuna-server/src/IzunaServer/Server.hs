@@ -88,7 +88,7 @@ apiServer :: ServerT WebApi AppM
 apiServer =
   projectInfoServer :<|> healthServer
 
--- ** save project info
+-- ** project info
 
 type ProjectInfoApi =
   Flat (
