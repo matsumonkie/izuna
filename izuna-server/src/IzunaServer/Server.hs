@@ -43,7 +43,7 @@ cors =
     onlyRequestForCors request =
       case Wai.pathInfo request of
         "api" : _  ->
-          Just Wai.CorsResourcePolicy { Wai.corsOrigins = Just (allowedOrigins, True)
+          Just Wai.CorsResourcePolicy { Wai.corsOrigins = Nothing
                                       , Wai.corsMethods = [ HTTP.methodPost, HTTP.methodGet, HTTP.methodOptions ]
                                       , Wai.corsRequestHeaders = Wai.simpleResponseHeaders <> allowedRequestHeaders
                                       , Wai.corsExposedHeaders = Nothing
@@ -53,11 +53,6 @@ cors =
                                       , Wai.corsIgnoreFailures = False
                                       }
         _ -> Nothing
-
-    allowedOrigins :: [ Wai.Origin ]
-    allowedOrigins =
-      [ "https://github.com"
-      ]
 
     allowedRequestHeaders :: [ HTTP.HeaderName ]
     allowedRequestHeaders =
