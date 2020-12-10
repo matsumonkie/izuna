@@ -71,6 +71,7 @@ library:
   - case-insensitive
   - http-types
   - aeson
+  - directory
 
 executables:
   izuna-server-exe:

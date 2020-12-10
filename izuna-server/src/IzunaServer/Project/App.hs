@@ -7,6 +7,10 @@ module IzunaServer.Project.App ( getProjectInfoHandler
 
 import qualified Data.Aeson                     as Aeson
 
+-- ** directory
+
+import qualified System.Directory               as Dir
+
 -- ** servant
 
 import qualified Servant
@@ -18,7 +22,6 @@ import qualified Control.Monad.IO.Class         as IO
 
 -- ** filepath
 
-import           System.FilePath.Posix          ((</>))
 import qualified System.FilePath.Posix          as FilePath
 
 -- ** local
@@ -38,10 +41,16 @@ getProjectInfoHandler
   -> NonEmptyString Commit
   -> m ModulesInfo
 getProjectInfoHandler username repo package commit = do
-  mProjectInfo <- IO.liftIO $ Aeson.decodeFileStrict' (filePath </> "json")
-  case mProjectInfo of
-    Nothing          -> Servant.throwError Servant.err404
-    Just projectInfo -> return projectInfo
+  fileExists <- IO.liftIO $ Dir.doesFileExist filePath
+  case fileExists of
+    False -> Servant.throwError Servant.err404
+    True -> do
+      mProjectInfo <- IO.liftIO $ Aeson.decodeFileStrict' filePath
+      case mProjectInfo of
+        Nothing          -> do
+          IO.liftIO $ putStrLn $ "could not decode file to json for project: " <> filePath
+          Servant.throwError Servant.err500
+        Just projectInfo -> return projectInfo
   where
     filePath :: FilePath
     filePath =
@@ -50,6 +59,7 @@ getProjectInfoHandler username repo package commit = do
                         , toString repo
                         , toString package
                         , toString commit
+                        , "json"
                         ]
 
 -- * util

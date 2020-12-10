@@ -37,6 +37,7 @@ library
       aeson
     , base >=4.7 && <5
     , case-insensitive
+    , directory
     , filepath
     , foreign-store
     , http-types
