@@ -18,6 +18,7 @@ import qualified Control.Monad.IO.Class         as IO
 
 -- ** filepath
 
+import           System.FilePath.Posix          ((</>))
 import qualified System.FilePath.Posix          as FilePath
 
 -- ** local
@@ -35,9 +36,9 @@ getProjectInfoHandler
   -> NonEmptyString Repo
   -> NonEmptyString Package
   -> NonEmptyString Commit
-  -> m ProjectInfo
+  -> m ModulesInfo
 getProjectInfoHandler username repo package commit = do
-  mProjectInfo <- IO.liftIO $ Aeson.decodeFileStrict' filePath
+  mProjectInfo <- IO.liftIO $ Aeson.decodeFileStrict' (filePath </> "json")
   case mProjectInfo of
     Nothing          -> Servant.throwError Servant.err404
     Just projectInfo -> return projectInfo
@@ -45,8 +46,8 @@ getProjectInfoHandler username repo package commit = do
     filePath :: FilePath
     filePath =
       FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString repo
                         , toString username
+                        , toString repo
                         , toString package
                         , toString commit
                         ]
