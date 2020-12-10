@@ -19,7 +19,6 @@ import qualified Network.Wai.Middleware.Cors    as Wai
 import qualified Say
 import           Servant                        hiding (BadPassword, NoSuchUser)
 import           Servant.API.Flatten            (Flat)
-import           Servant.Multipart
 
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
@@ -98,15 +97,12 @@ type ProjectInfoApi =
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
     :> Capture "commit" (NonEmptyString Commit)
-    :> (
-      MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] () :<|>
-      Get '[JSON] ProjectInfo
-    )
+    :> Get '[JSON] ProjectInfo
   )
 
 projectInfoServer :: ServerT ProjectInfoApi AppM
 projectInfoServer = do
-  saveProjectInfoHandler :<|> getProjectInfoHandler
+  getProjectInfoHandler
 
 -- ** health api
 

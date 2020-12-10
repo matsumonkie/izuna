@@ -1,5 +1,4 @@
-module IzunaServer.Project.App ( saveProjectInfoHandler
-                               , getProjectInfoHandler
+module IzunaServer.Project.App ( getProjectInfoHandler
                                ) where
 
 -- * imports
@@ -11,61 +10,21 @@ import qualified Data.Aeson                     as Aeson
 -- ** servant
 
 import qualified Servant
-import           Servant.Multipart              (FileData (..),
-                                                 MultipartData (..), Tmp)
 
 -- ** transformers
 
-import qualified Control.Monad                  as Monad
 import qualified Control.Monad.Except           as Except
 import qualified Control.Monad.IO.Class         as IO
 
 -- ** filepath
 
-import           System.FilePath.Posix          ((</>))
 import qualified System.FilePath.Posix          as FilePath
-
--- ** directory
-
-import qualified System.Directory               as Dir
 
 -- ** local
 
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
 import           IzunaBuilder.Type
-
--- * save project
-
-saveProjectInfoHandler
-  :: (IO.MonadIO m)
-  => NonEmptyString Username
-  -> NonEmptyString Repo
-  -> NonEmptyString Package
-  -> NonEmptyString Commit
-  -> MultipartData Tmp
-  -> m ()
-saveProjectInfoHandler username repo package commit MultipartData{files} =
-  IO.liftIO $
-    createDirectory directoryPath >>
-    Monad.forM_ files (saveProjectInfo (directoryPath </> toString commit))
-  where
-    directoryPath :: FilePath
-    directoryPath =
-      FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString repo
-                        , toString username
-                        , toString package
-                        ]
-
-    createDirectory :: FilePath -> IO ()
-    createDirectory directory =
-      Dir.createDirectoryIfMissing True directory
-
-    saveProjectInfo :: FilePath -> FileData Tmp -> IO ()
-    saveProjectInfo newFilePath FileData{..} = do
-      Dir.copyFile fdPayload newFilePath
-
 
 -- * get project
 

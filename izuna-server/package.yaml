@@ -44,48 +44,33 @@ ghc-options:
   - -Wincomplete-record-updates # catch what are essentially partial pattern-matches
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints # help remove unnecessary typeclass constraints on functions
+  - -Wunused-packages
   - -fwrite-ide-info
   - -hiedir=.hie
 
 dependencies:
-- algebraic-graphs
 - base >= 4.7 && < 5
-- bytestring
-- containers
-- dhall
-- directory
-- filepath
-- generic-lens
-- ghc
-- lens
-- mtl
-- optparse-applicative
-- regex-tdfa
-- servant-server
-- servant-flatten
-- wai-cors
-- stm
-- text
-- transformers
-- foreign-store
-- safe-exceptions
-- say
-- utf8-string
-- wai
-- warp
-- case-insensitive
-- http-types
-- aeson
-- array
-- ghc-paths
-- pretty-simple
-- directory
-- izuna-builder
-- servant-multipart
-- http-client
+
 
 library:
   source-dirs: src
+  dependencies:
+  - izuna-builder
+  - filepath
+  - mtl
+  - servant-server
+  - servant-flatten
+  - wai-cors
+  - text
+  - transformers
+  - foreign-store
+  - safe-exceptions
+  - say
+  - wai
+  - warp
+  - case-insensitive
+  - http-types
+  - aeson
 
 executables:
   izuna-server-exe:
