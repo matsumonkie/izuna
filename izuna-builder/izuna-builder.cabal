@@ -51,6 +51,7 @@ library
     , generic-lens
     , ghc
     , ghc-paths
+    , html-entities
     , mtl
     , safe-exceptions
     , say

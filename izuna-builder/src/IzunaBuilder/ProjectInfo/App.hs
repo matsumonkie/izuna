@@ -18,6 +18,10 @@ import qualified Data.List                            as List
 
 import qualified Codec.Archive.Tar                    as Tar
 
+-- ** html entities
+
+import qualified HTMLEntities.Text                    as Html
+
 -- ** transformers
 
 import qualified Control.Monad                        as Monad
@@ -365,6 +369,8 @@ generateDom linesAsts =
           line
             & T.drop (Ghc.naturalToInt _span_colStart)
             & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
+            & Html.text
+
 
 -- * util
 
