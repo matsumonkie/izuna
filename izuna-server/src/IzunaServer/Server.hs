@@ -42,7 +42,7 @@ cors =
     onlyRequestForCors :: Wai.Request -> Maybe Wai.CorsResourcePolicy
     onlyRequestForCors request =
       case Wai.pathInfo request of
-        "cors" : _  ->
+        "api" : _  ->
           Just Wai.CorsResourcePolicy { Wai.corsOrigins = Just (allowedOrigins, True)
                                       , Wai.corsMethods = [ HTTP.methodPost, HTTP.methodGet, HTTP.methodOptions ]
                                       , Wai.corsRequestHeaders = Wai.simpleResponseHeaders <> allowedRequestHeaders
