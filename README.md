@@ -52,7 +52,7 @@ A more detailed worklow is:
 
 Please go to the [izuna-action](https://github.com/matsumonkie/izuna-action/) repo for more information.
 
-### izuna-Builder/izuna-server
+### izuna-builder/izuna-server
 
 izuna-builder is the core of the project. Its goals is to receive a hie files tar archive from the github action and extract it.
 Then it needs to parse the hie files and recover any useful information.
@@ -75,4 +75,4 @@ Izuna was (more than) inspired by:
 - [Haskell-code-explorer](https://github.com/alexwl/haskell-code-explorer) by Alexwl
 - [Haddock](https://github.com/haskell/haddock/)
 
-Kudos to [Weeder](https://github.com/ocharles/weeder/) by Ocharles and [Stan](https://github.com/kowainik/stan) by Kowainik which helped me understand better how Hie files work.
+Many thanks to [Weeder](https://github.com/ocharles/weeder/) by Ocharles and [Stan](https://github.com/kowainik/stan) by Kowainik which helped me understand better how Hie files work.
