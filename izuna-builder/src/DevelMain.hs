@@ -29,19 +29,19 @@ update :: IO ()
 update = do
   hSetBuffering stdout NoBuffering
   hSetBuffering stderr NoBuffering
-  putStrLn "Updating"
+  Say.say "Updating"
   mtidStore <- lookupStore tidStoreNum
   case mtidStore of
     -- no server running
     Nothing -> do
-      putStrLn "No server is running "
+      Say.say "No server is running "
       done <- storeAction doneStore newEmptyMVar
       tid <- start done
       _ <- storeAction (Store tidStoreNum) (newIORef tid)
       return ()
     -- server is already running
     Just tidStore -> do
-      putStrLn "Server is already running "
+      Say.say "Server is already running "
       restartAppInNewThread tidStore
   where
     doneStore :: Store (MVar ())
@@ -88,10 +88,10 @@ shutdown = do
     mtidStore <- lookupStore tidStoreNum
     case mtidStore of
       -- no server running
-      Nothing -> putStrLn "no app running"
+      Nothing -> Say.say "no app running"
       Just tidStore -> do
           withStore tidStore $ readIORef >=> killThread
-          putStrLn "App is shutdown"
+          Say.say "App is shutdown"
 
 tidStoreNum :: Word32
 tidStoreNum = 1
