@@ -1,7 +1,11 @@
 {
-  "name": "Getting Started Example",
+  "name": "Izuna",
   "version": "1.0",
-  "description": "Build an Extension!",
+  "icons": { "16": "icons/izuna-16.png",
+             "48": "icons/izuna-48.png",
+             "128": "icons/izuna-128.png"
+           },
+  "description": "Better Haskell code review for Github!",
   "permissions": [ "declarativeContent", "tabs", "activeTab", "storage", "http://*/"],
   "background": {
     "scripts": ["background.js"],
