@@ -45,11 +45,6 @@ function generateElmAppForRow(moduleInfo, githubGeneratedRow) {
   const lineNumber = parseInt(lineNumberDom.dataset.lineNumber) - 1;  // github starts line count at 1
   const node = githubGeneratedRow.querySelector('td.blob-code');
 
-  console.log(lineNumber + 1);
-  console.log(lineState);
-  console.log(githubGeneratedRow);
-  console.log(moduleInfo["fileContent"][lineNumber]);
-
   Elm.Main.init({ flags:
                   {
                     lineDom: moduleInfo["fileContent"][lineNumber],

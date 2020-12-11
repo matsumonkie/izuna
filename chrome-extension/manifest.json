@@ -6,7 +6,7 @@
              "128": "icons/izuna-128.png"
            },
   "description": "Better Haskell code review for Github!",
-  "permissions": [ "declarativeContent", "tabs", "activeTab", "storage", "http://*/"],
+  "permissions": [ "tabs" ],
   "background": {
     "scripts": ["background.js"],
     "persistent": false

@@ -5,16 +5,14 @@
   padding: 4px 8px;
   font-size: 13px;
   border-radius: 4px;
-  display: none;
 
-  transition-timing-function: ease;
-  transition-duration: 0.5s;
-  transition-property: display;
-  display: none;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.2s linear;
 }
 
 #tooltip[data-show] {
-  display: block;
+  opacity: 1;
 }
 
 #arrow,

@@ -67,7 +67,7 @@ flagsDecoder =
 
         lineDomDecoder : String -> Decode.Decoder (List (Html Msg))
         lineDomDecoder str =
-            case Parser.run (Debug.log "json" str) |> Result.map Parser.toVirtualDom of
+            case Parser.run str |> Result.map Parser.toVirtualDom of
                 Ok lineDom -> Decode.succeed lineDom
                 Err _ -> Decode.fail "cannot decode line dom"
 
