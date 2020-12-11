@@ -39,6 +39,7 @@ A more detailed worklow is:
 | 🔧        | Split diff view mode   |                                                           |
 | 🔧        | GHC 8.10.2 support     | only GHC 8.10.1 is available atm                          |
 | 🔧        | Security               | Make sure private repo are only accessible by their owner |
+| 🔧        | Syntax color           | Display richer Haskell syntax color                       |
 
 ## Caveats
 
@@ -74,7 +75,4 @@ Izuna was (more than) inspired by:
 - [Haskell-code-explorer](https://github.com/alexwl/haskell-code-explorer) by Alexwl
 - [Haddock](https://github.com/haskell/haddock/)
 
-Kudos to:
-- [Weeder](https://github.com/ocharles/weeder/) by Ocharles
-- [Stan](https://github.com/kowainik/stan) by Kowainik
-Which helps me understand better how Hie files work!
+Kudos to [Weeder](https://github.com/ocharles/weeder/) by Ocharles and [Stan](https://github.com/kowainik/stan) by Kowainik which helped me understand better how Hie files work.
