@@ -77,3 +77,6 @@ Izuna was (more than) inspired by:
 - [Haddock](https://github.com/haskell/haddock/)
 
 Many thanks to [Weeder](https://github.com/ocharles/weeder/) by Ocharles and [Stan](https://github.com/kowainik/stan) by Kowainik which helped me understand better how Hie files work.
+
+
+Icons made by [Freepik](https://www.flaticon.com/authors/freepik)
