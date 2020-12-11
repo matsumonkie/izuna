@@ -29,7 +29,9 @@ jobs:
     - uses: actions/cache@v1
       name: Cache ~/.stack
       with:
-        path: ~/.stack
+        path: |
+          ~/.stack
+          ./izuna-builder/.stack-work
         key: ${{ runner.os }}-${{ matrix.ghc }}-stack
 
     - name: Build
