@@ -4,6 +4,8 @@
 
 Izuna is brings a richer github interface by showing type annotations directly in your browser.
 
+![gif demo](./demo.gif)
+
 ## Requirements
 
 As of today, the izuna plugin is only available for Chrome and your haskell project needs to be using GHC 8.10.1
@@ -73,6 +75,6 @@ Izuna was (more than) inspired by:
 - [Haddock](https://github.com/haskell/haddock/)
 
 Kudos to:
-- [weeder](https://github.com/ocharles/weeder/) by Ocharles
-- [stan](https://github.com/kowainik/stan) by Kowainik
+- [Weeder](https://github.com/ocharles/weeder/) by Ocharles
+- [Stan](https://github.com/kowainik/stan) by Kowainik
 Which helps me understand better how Hie files work!
