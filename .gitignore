@@ -6,3 +6,5 @@ node_modules/
 app.js
 backup/
 package-lock.json
+*.zip
+*.tar
