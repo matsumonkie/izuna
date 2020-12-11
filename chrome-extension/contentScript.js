@@ -6,9 +6,13 @@ function createPopper () {
   arrow.setAttribute("id", "arrow");
   arrow.setAttribute("data-popper-arrow", "");
 
+  tooltipText = document.createElement("div");
+  tooltipText.setAttribute("id", "tooltipText");
+
   tooltip = document.createElement("pre");
   tooltip.setAttribute("id", "tooltip");
   tooltip.setAttribute("role", "tooltip");
+  tooltip.appendChild(tooltipText)
   tooltip.appendChild(arrow)
   document.body.appendChild(tooltip);
 }
@@ -17,15 +21,33 @@ function createPopper () {
   attach a display notification event on all code span that have annotations
 */
 function mkNotificationEvents() {
+  const tooltip = document.querySelector('#tooltip');
+  let popperInstance = null;
+
   document.querySelectorAll("span[data-specialized-type]").forEach(span => {
     span.addEventListener("mouseover", event => {
-      Popper.createPopper(span, tooltip, { placement: 'top' });
-      tooltip.innerHTML = span.dataset.specializedType.replaceAll(" -> ", " ⟶ ");
+      const tooltipOptions = {
+        placement: 'top',
+        modifiers: [
+          {
+            name: 'offset',
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ],
+      };
+      popperInstance = Popper.createPopper(span, tooltip, tooltipOptions);
+      tooltip.querySelector('#tooltipText').innerHTML = span.dataset.specializedType.replaceAll(" -> ", " ⟶ ");
       tooltip.setAttribute('data-show', '');
     });
 
     span.addEventListener("mouseleave", event => {
       tooltip.removeAttribute('data-show');
+      if (popperInstance) {
+        popperInstance.destroy();
+        popperInstance = null;
+      }
     });
   });
 }
