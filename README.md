@@ -60,14 +60,14 @@ Then it needs to parse the hie files and recover any useful information.
 
 Build with:
 ```bash
-stack build izuna-builder --stack-yaml=stack-8.10.1.yaml
+stack build izuna-builder --stack-yaml=stack-8.10.1.yaml --no-nix
 ```
 
 izuna-server is a simple server that returns the processed hie files for the plugin.
 
 Build with:
 ```bash
-stack build izuna-server --stack-yaml=stack-8.10.1.yaml
+stack build izuna-server --stack-yaml=stack-8.10.1.yaml --no-nix
 ```
 
 ## Inspirations

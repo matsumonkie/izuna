@@ -9,3 +9,4 @@ extra-deps:
 nix:
   enable: true
   packages: [ zlib ]
+  path: [nixpkgs=./nixpkgs.nix]
