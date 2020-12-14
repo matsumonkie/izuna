@@ -1,12 +1,14 @@
 module IzunaBuilder.NonEmptyString where
 
 import qualified Data.Aeson         as Aeson
+import           Data.Function      ((&))
+--import qualified Data.Aeson.Types   as Aeson
 import qualified Data.List.NonEmpty as NE
 import           Data.String
 import qualified Data.Text          as T
 import qualified Servant.API        as Servant
 
-newtype NonEmptyString a = NonEmptyString (NE.NonEmpty Char)
+newtype NonEmptyString a = NonEmptyString (NE.NonEmpty Char) deriving Show
 
 instance IsString (NonEmptyString a) where
   fromString str =
@@ -26,8 +28,11 @@ instance Servant.FromHttpApiData (NonEmptyString a) where
 
 instance Aeson.ToJSON (NonEmptyString a) where
   toJSON (NonEmptyString nonEmptyStr) =
-    Aeson.toJSON nonEmptyStr
+    nonEmptyStr & NE.toList & Aeson.toJSON
 
 instance Aeson.FromJSON (NonEmptyString a) where
-  parseJSON text =
-    NonEmptyString <$> Aeson.parseJSON text
+  parseJSON text = do
+    str :: String <- Aeson.parseJSON text
+    case NE.nonEmpty str of
+      Nothing -> fail "could not parse string to non empty string"
+      Just ne -> pure $ NonEmptyString ne

@@ -3,13 +3,14 @@
 
 module IzunaBuilder.Type where
 
-import qualified Data.ByteString as ByteString
-import qualified Data.Map        as M
-import qualified Data.Set        as S
-import qualified Data.Text       as T
-import qualified DynFlags        as Ghc
-import qualified HieTypes        as Ghc
-import           Numeric.Natural as Natural
+import qualified Data.ByteString    as ByteString
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map           as M
+import qualified Data.Set           as S
+import qualified Data.Text          as T
+import qualified DynFlags           as Ghc
+import qualified HieTypes           as Ghc
+import           Numeric.Natural    as Natural
 
 type ByteString = ByteString.ByteString
 type HieTypeFlat = Ghc.HieTypeFlat
@@ -23,9 +24,11 @@ type NodeIdentifiers = Ghc.NodeIdentifiers String
 type Text = T.Text
 type Map = M.Map
 type Nat = Natural.Natural
+type NonEmpty = NE.NonEmpty
 
 data GhcVersion
 data Username
 data Repo
 data Package
 data Commit
+data CommitId
