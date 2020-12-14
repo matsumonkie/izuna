@@ -23,14 +23,17 @@ import           Servant.API.Flatten            (Flat)
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
 import           IzunaBuilder.Type
+import           IzunaServer.Env
 import           IzunaServer.Project.App
+import           IzunaServer.PullRequest.App
+import           IzunaServer.PullRequest.Model
 
 -- * run
 
 run :: IO ()
 run = do
   Say.sayString "running izuna-server!"
-  app :: Application <- mkApp "" <&> cors
+  app :: Application <- mkApp <&> cors
   Warp.run 3001 app
 
 -- * cors
@@ -65,8 +68,9 @@ cors =
 
 -- * mk app
 
-mkApp :: String -> IO Application
-mkApp env = do
+mkApp :: IO Application
+mkApp = do
+  env <- getEnv
   let
     context = EmptyContext
     webApiProxy = Proxy :: Proxy WebApi
@@ -77,11 +81,11 @@ mkApp env = do
 -- * api
 
 type WebApi =
-  ProjectInfoApi :<|> HealthApi
+  ProjectInfoApi :<|> PullRequestInfoApi :<|> HealthApi
 
 apiServer :: ServerT WebApi AppM
 apiServer =
-  projectInfoServer :<|> healthServer
+  projectInfoServer :<|> pullRequestInfoServer :<|> healthServer
 
 -- ** project info
 
@@ -99,6 +103,21 @@ projectInfoServer :: ServerT ProjectInfoApi AppM
 projectInfoServer = do
   getProjectInfoHandler
 
+-- ** pull request info
+
+type PullRequestInfoApi =
+  Flat (
+    "api" :> "pullRequestInfo"
+    :> Capture "username" (NonEmptyString Username)
+    :> Capture "repo" (NonEmptyString Repo)
+    :> Capture "pullRequestId" Nat
+    :> Get '[JSON] PullRequestInfo
+  )
+
+pullRequestInfoServer :: ServerT PullRequestInfoApi AppM
+pullRequestInfoServer = do
+  pullRequestInfoHandler
+
 -- ** health api
 
 type HealthApi =
@@ -113,9 +132,9 @@ healthServer = do
 -- * app
 
 newtype AppM a =
-  AppM { unAppM :: Except.ExceptT ServerError (Reader.ReaderT String IO) a }
+  AppM { unAppM :: Except.ExceptT ServerError (Reader.ReaderT Env IO) a }
   deriving ( Except.MonadError ServerError
-           , Reader.MonadReader String
+           , Reader.MonadReader Env
            , Functor
            , Applicative
            , Monad
@@ -123,7 +142,7 @@ newtype AppM a =
            )
 
 appMToHandler
-  :: String
+  :: Env
   -> AppM a
   -> Handler a
 appMToHandler env r = do
