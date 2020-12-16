@@ -1,37 +1,33 @@
-main();
+chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => main(payload));
 
+function main (payload) {
+  console.debug(payload)
 
-function main () {
-  chrome.runtime.sendMessage({}, response => {
-    console.debug(response);
+  try {
+    const haskellDiffDoms = getAllHaskellDiffDom();
+    haskellDiffDoms.forEach(diffDom => {
+      const splitMode = isSplitMode(diffDom);
+      const filePath =  getFilePath(diffDom);
+      const moduleInfo = {
+        oldModuleInfo: payload.oldPackageInfo[filePath],
+        newModuleInfo: payload.newPackageInfo[filePath]
+      };
+      if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
+        const diffRowsDom = getDiffRowsDom(filePath, diffDom);
+        Array.from(diffRowsDom).forEach (diffRowDom => generateRow(filePath, moduleInfo, splitMode, diffRowDom));
+      }
+    });
+  } catch (error) {
+    console.error("izuna: Fatal error occurred, izuna will stop working on this page")
+    console.error("izuna: Try reloading your page")
+    console.error("izuna: Please report the error below to https://github.com/matsumonkie/izuna/issues")
+    console.error("izuna: " + error)
+    return;
+  }
 
-    try {
-      const haskellDiffDoms = getAllHaskellDiffDom();
-      haskellDiffDoms.forEach(diffDom => {
-        const splitMode = isSplitMode(diffDom);
-        const filePath =  getFilePath(diffDom);
-        const moduleInfo = {
-          oldModuleInfo: response.oldPackageInfo[filePath],
-          newModuleInfo: response.newPackageInfo[filePath]
-        };
-        if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
-          const diffRowsDom = getDiffRowsDom(filePath, diffDom);
-          Array.from(diffRowsDom).forEach (diffRowDom => generateRow(filePath, moduleInfo, splitMode, diffRowDom));
-        }
-      });
-    } catch (error) {
-      console.error("izuna: Fatal error occurred, izuna will stop working on this page")
-      console.error("izuna: Try reloading your page")
-      console.error("izuna: Please report the error below to https://github.com/matsumonkie/izuna/issues")
-      console.error("izuna: " + error)
-      return;
-    }
-
-    const tooltip = createPopper();
-    document.body.appendChild(tooltip);
-    mkNotificationEvents(tooltip);
-  });
-
+  const tooltip = createPopper();
+  document.body.appendChild(tooltip);
+  mkNotificationEvents(tooltip);
 }
 
 
