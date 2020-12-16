@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - main
   pull_request:
 
 jobs:
@@ -17,30 +18,31 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
+      if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/main' || github.event.ref == 'refs/heads/master'
 
-    - uses: actions/setup-haskell@v1.1.4
+    - uses: haskell/actions/setup@v1
       name: Setup Haskell Stack
       with:
         ghc-version: ${{ matrix.ghc }}
         stack-version: ${{ matrix.stack }}
         enable-stack: true
 
-    - uses: actions/cache@v1
-      name: Cache ~/.stack
+    - uses: actions/cache@v2
+      name: Cache Stack build
       with:
-        path: ~/.stack
+        path: |
+          ~/.stack
+          .stack-work
         key: ${{ runner.os }}-${{ matrix.ghc }}-stack
 
     - name: Build
       run: |
-        stack build izuna-builder --stack-yaml=stack-8.10.1.yaml --no-nix
+        stack build izuna-builder --stack-yaml=stack-8.10.1.yaml --no-nix --force-dirty
+        #stack build izuna-server --stack-yaml=stack-8.10.1.yaml --no-nix --force-dirty
 
-    - name: build project info for izuna
-      uses: matsumonkie/izuna-action@v0.43
+    - name: izuna for izuna-builder
+      uses: matsumonkie/izuna-action@v0.54
       with:
-        owner: 'matsumonkie'
-        repository: 'izuna'
         package: 'izuna'
         ghcVersion: '8.10.1'
         hieDirectory: 'izuna-builder/.hie/'
