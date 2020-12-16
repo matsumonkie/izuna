@@ -24,11 +24,15 @@ main =
 -- * model
 
 type alias Model =
-    { lineDom : List (Html Msg)
-    , lineState : LineState
+    { state : LineState
+    , githubLine : String
+    , izunaLine : List (Html Msg)
     }
 
-type LineState = Added | Deleted | UnModified
+type LineState
+    = Added
+    | Deleted
+    | Unmodified
 
 -- * message
 
@@ -51,10 +55,11 @@ decodeFlags json =
 flagsDecoder : Decode.Decoder Model
 flagsDecoder =
     let
-        mkModel : List (Html Msg) -> LineState -> Model
-        mkModel lineDom lineState =
-            { lineDom = lineDom
-            , lineState = lineState
+        mkModel : String -> List (Html Msg) -> LineState -> Model
+        mkModel githubLine izunaLine state =
+            { githubLine = githubLine
+            , izunaLine = izunaLine
+            , state = state
             }
 
         lineStateDecoder : String -> Decode.Decoder LineState
@@ -62,7 +67,7 @@ flagsDecoder =
             case lineState of
                 "ADDED" ->  Decode.succeed Added
                 "DELETED" -> Decode.succeed Deleted
-                "UNMODIFIED" -> Decode.succeed UnModified
+                "UNMODIFIED" -> Decode.succeed Unmodified
                 _ -> Decode.fail "cannot decode line state"
 
         lineDomDecoder : String -> Decode.Decoder (List (Html Msg))
@@ -72,9 +77,11 @@ flagsDecoder =
                 Err _ -> Decode.fail "cannot decode line dom"
 
     in
-    Decode.map2 mkModel
-        (Decode.at [ "lineDom" ] (Decode.string |> Decode.andThen lineDomDecoder))
-        (Decode.at [ "lineState" ] (Decode.string |> Decode.andThen lineStateDecoder))
+    Decode.map3 mkModel
+        (Decode.at [ "githubLine" ] (Decode.string))
+        (Decode.at [ "izunaLine" ] (Decode.string |> Decode.andThen lineDomDecoder))
+        (Decode.at [ "state" ] (Decode.string |> Decode.andThen lineStateDecoder))
+
 
 init : Decode.Value -> (Model, Cmd Msg)
 init json  =
@@ -95,21 +102,32 @@ view : Model -> Html Msg
 view model =
     let
         tdAttr =
-            case model.lineState of
-                Added -> [ Html.class "blob-code", Html.class "blob-code-addition" ]
-                _ -> []
+            case model.state of
+                Added ->
+                    [ Html.class "blob-code", Html.class "blob-code-addition" ]
+
+                Deleted ->
+                    [ Html.class "blob-code", Html.class "blob-code-deletion" ]
+
+                Unmodified ->
+                    [ Html.class "blob-code", Html.class "blob-code-context" ]
+
+        spanAttributes marker =
+            [ Html.class "blob-code-inner"
+            , Html.class "blob-code-marker"
+            , Html.attribute "data-code-marker" marker
+            ]
 
         tdBody =
-            case model.lineState of
+            case model.state of
                 Added ->
-                    Html.span [ Html.class "blob-code-inner"
-                              , Html.class "blob-code-marker"
-                              , Html.attribute "data-code-marker" "+"
-                              ] model.lineDom
+                    Html.span (spanAttributes "+") model.izunaLine
 
-                _ -> Html.span [ Html.class "blob-code-inner"
-                               , Html.class "blob-code-marker"
-                               ] model.lineDom
+                Deleted ->
+                    Html.span (spanAttributes "-") model.izunaLine
+
+                Unmodified ->
+                    Html.span (spanAttributes " ") model.izunaLine
     in
     Html.td tdAttr [ tdBody ]
 
