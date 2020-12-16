@@ -1,3 +1,5 @@
+![example workflow file path](https://github.com/matsumonkie/izuna/workflows/.github/workflows/main.yml/badge.svg)
+
 # izuna
 
 > Enhances Haskell code review for Github
