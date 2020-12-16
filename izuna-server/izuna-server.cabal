@@ -14,9 +14,6 @@ maintainer:     example@example.com
 copyright:      2020 Author name here
 license:        BSD3
 build-type:     Simple
-extra-source-files:
-    README.md
-    ChangeLog.md
 
 source-repository head
   type: git
@@ -25,8 +22,12 @@ source-repository head
 library
   exposed-modules:
       DevelMain
+      IzunaServer.Env
       IzunaServer.Project.App
+      IzunaServer.PullRequest.App
+      IzunaServer.PullRequest.Model
       IzunaServer.Server
+      IzunaServer.Service.Github
   other-modules:
       Paths_izuna_server
   hs-source-dirs:
@@ -37,18 +38,23 @@ library
       aeson
     , base >=4.7 && <5
     , case-insensitive
+    , dhall
     , directory
     , filepath
     , foreign-store
+    , http-client
+    , http-client-tls
     , http-types
     , izuna-builder
     , mtl
     , safe-exceptions
     , say
+    , servant-client
     , servant-flatten
     , servant-server
     , text
     , transformers
+    , vector
     , wai
     , wai-cors
     , warp
@@ -65,20 +71,4 @@ executable izuna-server-exe
   build-depends:
       base >=4.7 && <5
     , izuna-server
-  default-language: Haskell2010
-
-test-suite spec
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_izuna_server
-  hs-source-dirs:
-      test
-  default-extensions: LambdaCase OverloadedStrings NamedFieldPuns QuasiQuotes ScopedTypeVariables TemplateHaskell RecordWildCards EmptyCase FlexibleContexts FlexibleInstances InstanceSigs MultiParamTypeClasses MultiWayIf StrictData TypeApplications
-  ghc-options: -Wall -fno-warn-name-shadowing -Wincomplete-patterns -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wunused-packages -fwrite-ide-info -hiedir=.hie -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , hspec
-    , izuna-server
-    , servant-client
   default-language: Haskell2010

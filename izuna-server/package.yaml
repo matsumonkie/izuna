@@ -6,10 +6,6 @@ author:              "Author name here"
 maintainer:          "example@example.com"
 copyright:           "2020 Author name here"
 
-extra-source-files:
-- README.md
-- ChangeLog.md
-
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            Web
@@ -72,6 +68,12 @@ library:
   - http-types
   - aeson
   - directory
+  - dhall
+  - servant-client
+  - http-client
+  - http-client-tls
+  - vector
+
 
 executables:
   izuna-server-exe:
@@ -83,16 +85,3 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - izuna-server
-
-tests:
-  spec:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - izuna-server
-    - hspec
-    - servant-client
