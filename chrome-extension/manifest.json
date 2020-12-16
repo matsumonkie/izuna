@@ -8,7 +8,7 @@
   "description": "Better Haskell code review for Github!",
   "permissions": [ "tabs", "https://izuna-server.patchgirl.io/"],
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [ "background.js" ],
     "persistent": false
   },
   "content_scripts": [
