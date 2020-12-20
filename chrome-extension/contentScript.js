@@ -12,10 +12,8 @@ function main (payload) {
         oldModuleInfo: payload.oldPackageInfo[filePath],
         newModuleInfo: payload.newPackageInfo[filePath]
       };
-      if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
-        const diffRowsDom = getDiffRowsDom(filePath, diffDom);
-        Array.from(diffRowsDom).forEach (diffRowDom => generateRow(filePath, moduleInfo, splitMode, diffRowDom));
-      }
+      generateIzuna(diffDom, splitMode, filePath, moduleInfo);
+      watchDiffForCodeExpansion(diffDom, splitMode, filePath, moduleInfo);
     });
   } catch (error) {
     console.error("izuna: Fatal error occurred, izuna will stop working on this page")
@@ -28,6 +26,33 @@ function main (payload) {
   const tooltip = createPopper();
   document.body.appendChild(tooltip);
   mkNotificationEvents(tooltip);
+}
+
+function generateIzuna(diffDom, splitMode, filePath, moduleInfo) {
+  if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
+    const diffRowsDom = getDiffRowsDom(filePath, diffDom);
+    Array.from(diffRowsDom).forEach (diffRowDom => generateRow(filePath, moduleInfo, splitMode, diffRowDom));
+  }
+}
+
+/*
+ * on github, only the modified part of a file gets shown. If the user wants to see more, he can click on the expand button.
+ * We watch the whole diff file and anytime child nodes are being added, we re-run izuna on the whole file
+ */
+function watchDiffForCodeExpansion (diffDom, splitMode, filePath, moduleInfo) {
+  const codeDiffDom = diffDom.querySelector('table.diff-table tbody');
+  const config = { attributes: false, childList: true, subtree: false };
+
+  const callback = function(mutationsList, observer) {
+    mutationsList.forEach (mutation => {
+      if (mutation.type === 'childList') {
+        generateIzuna(diffDom, splitMode, filePath, moduleInfo);
+      }
+    });
+  };
+
+  const observer = new MutationObserver(callback);
+  observer.observe(codeDiffDom, config);
 }
 
 
@@ -60,7 +85,8 @@ function getFilePath(diffDom) {
 
 // extract each diffing rows for a given file diff
 function getDiffRowsDom(filePath, diffDom) {
-  const diffRowsDom = diffDom.querySelector('tbody').querySelectorAll('tr[data-hunk]');
+  // `tr[data-hunk]` are the original rows where as `tr.blob-expanded` are the rows that have been manually requested by the user
+  const diffRowsDom = diffDom.querySelector('tbody').querySelectorAll('tr[data-hunk], tr.blob-expanded');
   if (diffRowsDom.length === 0) {
     console.warn(`izuna: Could not find any diff rows for ${filePath}, this will not affect izuna but is probably an error!`);
   }
