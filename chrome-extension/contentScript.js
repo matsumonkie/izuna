@@ -1,4 +1,7 @@
-chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => main(payload));
+chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => {
+  main(payload);
+  sendResponse({});
+});
 
 function main (payload) {
   console.debug(payload)
@@ -222,8 +225,7 @@ function generateElmAppForRow(filePath, node, lineState, moduleInfo, lineNumber)
   if( lineDom !== undefined && node !== undefined) {
     const flags = {
       state: lineState,
-      izunaLine: lineDom,
-      githubLine: node.outerHTML
+      izunaLine: lineDom
     };
     Elm.Main.init({ flags: flags, node: node });
   } else {

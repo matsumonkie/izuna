@@ -25,7 +25,6 @@ main =
 
 type alias Model =
     { state : LineState
-    , githubLine : String
     , izunaLine : List (Html Msg)
     }
 
@@ -55,10 +54,9 @@ decodeFlags json =
 flagsDecoder : Decode.Decoder Model
 flagsDecoder =
     let
-        mkModel : String -> List (Html Msg) -> LineState -> Model
-        mkModel githubLine izunaLine state =
-            { githubLine = githubLine
-            , izunaLine = izunaLine
+        mkModel : List (Html Msg) -> LineState -> Model
+        mkModel izunaLine state =
+            { izunaLine = izunaLine
             , state = state
             }
 
@@ -77,8 +75,7 @@ flagsDecoder =
                 Err _ -> Decode.fail "cannot decode line dom"
 
     in
-    Decode.map3 mkModel
-        (Decode.at [ "githubLine" ] (Decode.string))
+    Decode.map2 mkModel
         (Decode.at [ "izunaLine" ] (Decode.string |> Decode.andThen lineDomDecoder))
         (Decode.at [ "state" ] (Decode.string |> Decode.andThen lineStateDecoder))
 
