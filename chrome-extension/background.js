@@ -1,25 +1,44 @@
+var cache = {};
 main();
 
-var cache = {};
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.sync.set({ enableIzuna: true });
+});
 
 function main() {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    const pathname = githubPullRequestUrlPathName(tabId, changeInfo, tab);
-    if(pathname) {
-      const pullRequestInfo = getPullRequestInfo(pathname);
+    // enable extension icon when we are on github only
+    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+      chrome.declarativeContent.onPageChanged.addRules([{
+        conditions: [
+          new chrome.declarativeContent.PageStateMatcher({
+            pageUrl: { hostEquals: 'github.com' },
+          })
+        ],
+        actions: [new chrome.declarativeContent.ShowPageAction()]
+      }]);
+    });
 
-      fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-        getPackageInfo(pullRequestInfo, pullRequestDetails).then(packageInfo => {
-          storeInCache(pullRequestInfo, pullRequestDetails, packageInfo);
-          const payload = {
-            oldPackageInfo: packageInfo[0],
-            newPackageInfo: packageInfo[1]
-          }
+    chrome.storage.sync.get('enableIzuna', function(result) {
+      if(result.enableIzuna) {
+        const pathname = githubPullRequestUrlPathName(tabId, changeInfo, tab);
+        if(pathname) {
+          const pullRequestInfo = getPullRequestInfo(pathname);
 
-          chrome.tabs.sendMessage(tab.id, payload, (response) => {});
-        });
-      });
-    }
+          fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
+            getPackageInfo(pullRequestInfo, pullRequestDetails).then(packageInfo => {
+              storeInCache(pullRequestInfo, pullRequestDetails, packageInfo);
+              const payload = {
+                oldPackageInfo: packageInfo[0],
+                newPackageInfo: packageInfo[1]
+              }
+
+              chrome.tabs.sendMessage(tab.id, payload, (response) => {});
+            });
+          });
+        }
+      }
+    });
   })
 }
 
@@ -40,7 +59,6 @@ function getInCache(pullRequestInfo, pullRequestDetails) {
   if(cached) {
     // more than 10s ago
     const delayExhausted = (now - cached.timestamp) > 10;
-    console.log((now - cached.timestamp));
     if(delayExhausted) {
       cache[ prCacheKey(pullRequestInfo, pullRequestDetails) ] = null;
       return null;

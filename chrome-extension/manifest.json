@@ -6,7 +6,11 @@
              "128": "icons/izuna-128.png"
            },
   "description": "Better Haskell code review for Github!",
-  "permissions": [ "tabs", "https://izuna-server.patchgirl.io/"],
+  "permissions": [ "declarativeContent",                 // enable/disable izuna when the page change from/to a github page
+                   "tabs",                               // communicate between content and background script, also modify active tab
+                   "storage",                            // store user prefs
+                   "https://izuna-server.patchgirl.io/"  // fetch izuna information from izuna server
+                 ],
   "background": {
     "scripts": [ "background.js" ],
     "persistent": false

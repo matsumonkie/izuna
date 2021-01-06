@@ -1,16 +1,19 @@
-let changeColor = document.getElementById('changeColor');
+document.addEventListener('DOMContentLoaded', () => {
+  const checkbox = document.querySelector('input#enableIzuna');
 
-  chrome.storage.sync.get('color', function(data) {
-    changeColor.style.backgroundColor = data.color;
-    changeColor.setAttribute('value', data.color);
+  getSavedBackgroundColor((savedChecked) => {
+    if(savedChecked) {
+      checkbox.checked = savedChecked;
+    }
   });
 
-  changeColor.onclick = function(element) {
-    let color = element.target.value;
-    chrome.tabs.query( { active: true,
-                         currentWindow: true
-                       }, function(tabs) {
-                         chrome.tabs.executeScript(tabs[0].id, { code: 'document.body.style.backgroundColor = "' + color + '";'});
-                       }
-                     );
-  };
+  checkbox.addEventListener('change', () => {
+    chrome.storage.sync.set({ enableIzuna: checkbox.checked });
+  });
+});
+
+function getSavedBackgroundColor(callback) {
+  chrome.storage.sync.get('enableIzuna', (checked) => {
+    callback(chrome.runtime.lastError ? null : checked['enableIzuna']);
+  });
+}
