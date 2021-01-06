@@ -40,7 +40,6 @@ ghc-options:
   - -Wincomplete-record-updates # catch what are essentially partial pattern-matches
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints # help remove unnecessary typeclass constraints on functions
-  - -Wunused-packages
   - -fwrite-ide-info
   - -hiedir=.hie
 
