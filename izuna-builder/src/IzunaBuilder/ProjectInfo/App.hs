@@ -145,8 +145,12 @@ buildProjectInfo hieDirectory = do
 -- * write project info
 
 writeProjectInfo :: FilePath -> ModulesInfo -> IO ()
-writeProjectInfo hieDirectory modulesInfo =
-  Aeson.encodeFile (hieDirectory </> "json") modulesInfo
+writeProjectInfo hieDirectory modulesInfo = do
+  M.traverseWithKey encode modulesInfo >> return ()
+  where
+    encode :: FilePath -> ModuleInfo -> IO ()
+    encode filePath moduleInfo = do
+      Aeson.encodeFile (hieDirectory </> "json" </> filePath) moduleInfo
 
 -- * convert hie to raw module
 

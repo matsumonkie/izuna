@@ -53,17 +53,17 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - containers
+  - text
   - aeson
   - servant
   - generic-lens
   - array
   - bytestring
-  - containers
   - ghc-paths
   - ghc
   - directory
   - filepath
-  - text
   - say
   - mtl
   - wai
@@ -98,4 +98,5 @@ tests:
     dependencies:
     - izuna-builder
     - hspec
-    - servant-client
+    - containers
+    - text
