@@ -9,4 +9,3 @@ package-lock.json
 *.zip
 *.tar
 *.dhall
-dist/
