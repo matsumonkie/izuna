@@ -50,10 +50,9 @@ getProjectInfoHandler
   -> NonEmptyString Repo
   -> NonEmptyString Package
   -> NonEmptyString Commit
-  -> NonEmptyString ProjectRoot
   -> [String]
   -> m ModulesInfo
-getProjectInfoHandler username repo package commit projectRoot files = do
+getProjectInfoHandler username repo package commit files = do
   allFileExist <- IO.liftIO $ T.for files (Dir.doesFileExist . getFilePath) <&> and
   case allFileExist of
     False -> Servant.throwError Servant.err404
@@ -77,7 +76,6 @@ getProjectInfoHandler username repo package commit projectRoot files = do
                         , toString package
                         , toString commit
                         , "json"
-                        , toString projectRoot
                         ]
 
     getFilePath :: FilePath -> FilePath
