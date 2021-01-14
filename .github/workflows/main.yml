@@ -46,4 +46,4 @@ jobs:
         package: 'izuna'
         ghcVersion: '8.10.1'
         hieDirectory: 'izuna-builder/.hie/'
-        rootDirectory: 'izuna-builder/'
+        projectRoot: 'izuna-builder/'
