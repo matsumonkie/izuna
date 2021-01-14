@@ -26,14 +26,11 @@ function main() {
           const pullRequestInfo = getPullRequestInfo(pathname);
 
           fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-            getPackageInfo(pullRequestInfo, pullRequestDetails).then(packageInfo => {
-              storeInCache(pullRequestInfo, pullRequestDetails, packageInfo);
-              const payload = {
-                oldPackageInfo: packageInfo[0],
-                newPackageInfo: packageInfo[1]
-              }
-
-              chrome.tabs.sendMessage(tab.id, payload, (response) => {});
+            chrome.tabs.sendMessage(tab.id, { cmd: 'whichFiles' }, (files) => {
+              getFilesInfo(pullRequestInfo, pullRequestDetails, files).then(payload => {
+                console.log("foo", payload);
+                chrome.tabs.sendMessage(tab.id, payload, (response) => {});
+              });
             });
           });
         }
@@ -42,53 +39,23 @@ function main() {
   })
 }
 
-function storeInCache(pullRequestInfo, pullRequestDetails, packageInfo) {
-  const cached = getInCache(pullRequestInfo, pullRequestDetails);
-  if(! cached) {
-    const now = Math.floor(Date.now() / 1000); // timestamp in seconds
-    cache[ prCacheKey(pullRequestInfo, pullRequestDetails) ] = {
-      timestamp: now,
-      packageInfo: packageInfo
+function getFilesInfo(pullRequestInfo, pullRequestDetails, files) {
+  const oldFilesInfo = fetchFilesInfo(pullRequestInfo, pullRequestDetails.targetOid, files);
+  const newFilesInfo = fetchFilesInfo(pullRequestInfo, pullRequestDetails.commitOids[0], files);
+  return Promise.all([oldFilesInfo, newFilesInfo]).then(filesInfo => {
+    return {
+      oldPackageInfo: filesInfo[0],
+      newPackageInfo: filesInfo[1]
     };
-  }
-}
-
-function getInCache(pullRequestInfo, pullRequestDetails) {
-  const now = Math.floor(Date.now() / 1000);
-  const cached = cache[ prCacheKey(pullRequestInfo, pullRequestDetails) ];
-  if(cached) {
-    // more than 10s ago
-    const delayExhausted = (now - cached.timestamp) > 10;
-    if(delayExhausted) {
-      cache[ prCacheKey(pullRequestInfo, pullRequestDetails) ] = null;
-      return null;
-    } else {
-      return cached.packageInfo;
-    }
-  } else {
-    return null;
-  }
-}
-
-// we use a cache to make sure we don't flood izuna server
-function getPackageInfo(pullRequestInfo, pullRequestDetails) {
-  const cached = getInCache(pullRequestInfo, pullRequestDetails);
-  if (cached) {
-    return Promise.resolve(cached);
-  } else {
-    const oldPackageInfo = fetchPackageInfo(pullRequestInfo, pullRequestDetails.targetOid);
-    const newPackageInfo = fetchPackageInfo(pullRequestInfo, pullRequestDetails.commitOids[0]);
-    return Promise.all([oldPackageInfo, newPackageInfo]);
-  }
+  });
 }
 
 
-function prCacheKey(pullRequestInfo, pullRequestDetails) {
-  return pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + pullRequestInfo.pullRequest + '/' + pullRequestDetails.targetOid + '/' + pullRequestDetails.commitOids[0];
-}
-
-
-// return the url pathname if the current tab is loaded and is a github pull request page
+/* if the current tab is loaded and is a github pull request page, return the url pathname
+ *  eg:
+ *   input: https://github.com/matsumonkie/izuna-example/pull/7/files
+ *   output: /matsumonkie/izuna-example/pull/7/files
+ */
 function githubPullRequestUrlPathName(tabId, changeInfo, tab) {
   if( changeInfo &&
       changeInfo.status &&
@@ -100,7 +67,7 @@ function githubPullRequestUrlPathName(tabId, changeInfo, tab) {
       const pathAction = url.pathname.split('/')[3];
       const prTab = url.pathname.split('/')[5];
       if(pathAction === 'pull' && prTab === 'files') {
-        return url.pathname
+        return url.pathname;
       }
     }
   }
@@ -110,9 +77,10 @@ function githubPullRequestUrlPathName(tabId, changeInfo, tab) {
 
 /*
  * when browsing a pull request, we can fetch information related to the PR from the url pathname.
- eg: /matsumonkie/izuna-example/pull/7/files
- gives us: the owner, the repo and the PR number
-*/
+ * eg:
+ *   input: /matsumonkie/izuna-example/pull/7/files
+ *   output: { owner: matsumonkie, repo: izuna-example, pullRequest: 7, packageName: izuna-example }
+ */
 function getPullRequestInfo(pathname) {
   const [empty, user, repo, pull, pullRequest, ...tail] = pathname.split("/");
 
@@ -147,10 +115,17 @@ function fetchPullRequestCommitsDetails(pullRequestInfo) {
     })
 }
 
-async function fetchPackageInfo(pullRequestInfo, commitId) {
-  const izunaServerUrl = 'https://izuna-server.patchgirl.io/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
+async function fetchFilesInfo(pullRequestInfo, commitId, files) {
+//  const izunaServerUrl = 'https://izuna-server.patchgirl.io/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
+  const izunaServerUrl = 'http://localhost:3001/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
 
-  return fetch(izunaServerUrl, { mode: 'cors', credentials: 'omit' })
+  return fetch( izunaServerUrl,
+                { method: 'POST',
+                  credentials: 'omit',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(files)
+                }
+              )
     .then(response => {
       if (response.ok) {
         return response.json();

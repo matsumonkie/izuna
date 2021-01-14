@@ -2,9 +2,10 @@ module IzunaBuilder.ProjectInfo.RecoverType ( getDynFlags
                                             , recoverTypes
                                             ) where
 
-import qualified Data.Array                     as A
-
 import qualified CoreMonad                      as Ghc
+import qualified Data.Array                     as A
+import           Data.Function                  ((&))
+import qualified Data.Map                       as Map
 import qualified GHC                            as Ghc
 import qualified GHC.Paths                      as Ghc
 import           HieTypes                       (HieArgs (..), HieType (..))
@@ -23,31 +24,12 @@ getDynFlags :: IO DynFlags
 getDynFlags = do
   Ghc.runGhc (Just Ghc.libdir) Ghc.getDynFlags
 
+-- * recover types
 
--- * recover full interface types
-
--- | Expand the flattened HIE AST into one where the types printed out and
--- ready for end-users to look at.
---
--- Using just primitives found in GHC's HIE utilities, we could write this as
--- follows:
---
--- > 'recoverFullIfaceTypes' dflags hieTypes hieAst
--- >     = 'fmap' (\ti -> 'showSDoc' df .
--- >                      'pprIfaceType' $
--- >                      'recoverFullType' ti hieTypes)
--- >       hieAst
---
--- However, this is very inefficient (both in time and space) because the
--- mutliple calls to 'recoverFullType' don't share intermediate results. This
--- function fixes that.
-recoverTypes :: DynFlags -> RawModule TypeIndex a -> RawModule PrintedType a
-recoverTypes df rawModule@RawModule{..} =
-  rawModule { _rawModule_hieAst = fmap (printed A.!) _rawModule_hieAst }
-    where
-
-    -- Splitting this out into its own array is also important: we don't want
-    -- to pretty print the same type many times
+recoverTypes :: DynFlags -> RawModule TypeIndex a -> Map TypeIndex PrintedType
+recoverTypes df RawModule{..} =
+  printed & A.assocs & Map.fromList
+  where
     printed :: A.Array TypeIndex PrintedType
     printed = fmap (showSDoc df . pprIfaceType) unflattened
 

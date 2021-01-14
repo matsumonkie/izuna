@@ -1,11 +1,24 @@
+import { createPopper } from '@popperjs/core';
+import Splitter from './splitter.js';
+
 chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => {
-  main(payload);
-  sendResponse({});
+  if(payload.cmd === 'whichFiles') {
+    sendResponse(whichFiles());
+  } else {
+    console.debug(payload)
+    main(payload);
+    sendResponse({});
+  }
 });
 
-function main (payload) {
-  console.debug(payload)
+// when on the pull request page, we want to fetch the path of all the targeted files (i.e, the haskell files)
+function whichFiles() {
+  return Array.from(document.querySelectorAll("div.file-header div.file-info a"))
+    .map(e => e.textContent)
+    .filter(e => e.endsWith(".hs"));
+}
 
+function main (payload) {
   try {
     const haskellDiffDoms = getAllHaskellDiffDom();
     haskellDiffDoms.forEach(diffDom => {
@@ -19,14 +32,15 @@ function main (payload) {
       watchDiffForCodeExpansion(diffDom, splitMode, filePath, moduleInfo);
     });
   } catch (error) {
-    console.error("izuna: Fatal error occurred, izuna will stop working on this page")
-    console.error("izuna: Try reloading your page")
-    console.error("izuna: Please report the error below to https://github.com/matsumonkie/izuna/issues")
-    console.error("izuna: " + error)
+    const message = `izuna: Fatal error occurred, izuna will stop working on this page
+Try reloading your page
+If the error keep appearing, please report it to https://github.com/matsumonkie/izuna/issues
+Error is: ` + error;
+    console.error(message);
     return;
   }
 
-  const tooltip = createPopper();
+  const tooltip = mkPopper();
   document.body.appendChild(tooltip);
   mkNotificationEvents(tooltip);
 }
@@ -99,6 +113,12 @@ function getDiffRowsDom(filePath, diffDom) {
 
 //  make an elm application for a given row that will handle the display
 function generateRow(filePath, moduleInfo, splitMode, diffRowDom) {
+  console.log(filePath, moduleInfo, splitMode, diffRowDom);
+  console.log('doing nothing');
+}
+
+//  make an elm application for a given row that will handle the display
+/*function generateRow(filePath, moduleInfo, splitMode, diffRowDom) {
   const line = getLineNumberStates(diffRowDom, splitMode)
   const codeNode = getCodeNode(diffRowDom, splitMode);
   const oldModuleInfo = moduleInfo.oldModuleInfo;
@@ -116,7 +136,7 @@ function generateRow(filePath, moduleInfo, splitMode, diffRowDom) {
 
     generateElmAppForRow(filePath, codeNode.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
   }
-}
+}*/
 
 
 // for a given row, return both old/new line number and the line state (addition, deletion, unmodified)
@@ -235,7 +255,7 @@ function generateElmAppForRow(filePath, node, lineState, moduleInfo, lineNumber)
 
 
 //  create a popper notification to be used later on
-function createPopper () {
+function mkPopper () {
   arrow = document.createElement("div");
   arrow.setAttribute("id", "arrow");
   arrow.setAttribute("data-popper-arrow", "");
@@ -271,7 +291,7 @@ function mkNotificationEvents(tooltip) {
 
   document.querySelectorAll("span[data-specialized-type]").forEach(span => {
     span.addEventListener("mouseover", event => {
-      popperInstance = Popper.createPopper(span, tooltip, tooltipOptions);
+      popperInstance = createPopper(span, tooltip, tooltipOptions);
       tooltip.querySelector('#tooltipText').innerHTML = span.dataset.specializedType.replaceAll(" -> ", " ⟶ ");
       tooltip.setAttribute('data-show', '');
     });
