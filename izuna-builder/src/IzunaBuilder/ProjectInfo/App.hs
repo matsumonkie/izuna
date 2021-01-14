@@ -76,15 +76,16 @@ saveProjectInfoHandler
   -> NonEmptyString Repo
   -> NonEmptyString Package
   -> NonEmptyString Commit
+  -> NonEmptyString ProjectRoot
   -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
+saveProjectInfoHandler _ username repo package commit projectRoot MultipartData{files} = do
   IO.liftIO $ do
     df <- getDynFlags
     createDirectory directoryPath
     Monad.forM_ files $ extractHieTar directoryPath
     _ <- Async.async $
-      buildProjectInfo directoryPath df >>= M.traverseWithKey (saveModuleInfo directoryPath)
+      buildProjectInfo directoryPath df >>= M.traverseWithKey (saveModuleInfo directoryPath projectRoot)
     return ()
   where
     directoryPath :: FilePath
@@ -181,11 +182,12 @@ convertRawModuleToModuleAst RawModule{..} =
 
 saveModuleInfo
   :: FilePath
+  -> NonEmptyString ProjectRoot
   -> FilePath
   -> ModuleInfo
   -> IO ()
-saveModuleInfo hieDirectory filePath projectInfo = do
-  let (subDir, filename)  = FilePath.splitFileName filePath
+saveModuleInfo hieDirectory projectRoot filePath projectInfo = do
+  let (subDir, filename) = FilePath.splitFileName filePath
   Dir.createDirectoryIfMissing True (moduleDirectory </> subDir)
   Exception.try (Aeson.encodeFile (moduleDirectory </> subDir </> filename) projectInfo) >>= \case
     Left (exception :: Exception.IOException) -> do
@@ -193,7 +195,7 @@ saveModuleInfo hieDirectory filePath projectInfo = do
       return ()
     Right _ -> return ()
   where
-    moduleDirectory = hieDirectory </> "json"
+    moduleDirectory = hieDirectory </> "json" </> toString projectRoot
 
 -- * convert hie to raw module
 

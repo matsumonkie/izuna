@@ -34,3 +34,4 @@ data Repo
 data Package
 data Commit
 data CommitId
+data ProjectRoot

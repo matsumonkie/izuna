@@ -57,12 +57,13 @@ apiServer =
 
 type ProjectInfoApi =
     "api"
-    :> Capture "ghcVersion" (NonEmptyString GhcVersion)
     :> "projectInfo"
+    :> Capture "ghcVersion" (NonEmptyString GhcVersion)
     :> Capture "username" (NonEmptyString Username)
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
     :> Capture "commit" (NonEmptyString Commit)
+    :> Capture "projectRoot" (NonEmptyString ProjectRoot)
     :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] ()
 
 
