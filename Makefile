@@ -10,6 +10,10 @@ fast:
 build:
 	clear; echo "building $(PACKAGE)"; LC_ALL=C.UTF-8 $(STACK) build $(PACKAGE) --ghc-options="-threaded -rtsopts -with-rtsopts=-T -Werror"
 
+# there's a bug with -Wunused-packages and ghcid (ghcid fails to reload when unused-packages is present in package.yaml)
+check-unusued:
+	clear; echo "building $(PACKAGE)"; LC_ALL=C.UTF-8 $(STACK) build $(PACKAGE) --ghc-options="-threaded -rtsopts -with-rtsopts=-T -Werror -Wunused-packages"
+
 clean:
 	clear; LC_ALL=C.UTF-8 echo "cleaning $(PACKAGE)"; $(STACK) clean $(PACKAGE)
 

@@ -59,7 +59,8 @@ type ProjectInfoApi =
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
     :> Capture "commit" (NonEmptyString Commit)
-    :> Get '[JSON] ModulesInfo
+    :> ReqBody '[JSON] [String]
+    :> Post '[JSON] ModulesInfo
   )
 
 projectInfoServer :: ServerT ProjectInfoApi AppM

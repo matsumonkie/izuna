@@ -4,8 +4,6 @@ module IzunaBuilder.ProjectInfo.Model ( RawModule(..)
                                       , ModuleAst(..)
                                       , ModulesInfo
                                       , ModuleInfo(..)
-                                      , ProjectInfo(..)
-                                      , LineAst(..)
                                       , Span(..)
                                       , isOneLine
                                       ) where
@@ -16,12 +14,7 @@ module IzunaBuilder.ProjectInfo.Model ( RawModule(..)
 
 -- ** aeson
 
-import qualified Data.Aeson                  as Aeson
-
--- ** array
-
-import           Data.Array                  (Array)
-
+import qualified Data.Aeson        as Aeson
 
 -- ** ghc
 
@@ -36,35 +29,24 @@ import qualified IfaceType  as Ghc
 
 -- ** local
 
-import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.Type
 
 -- * model
 
 -- ** final
 
-data ProjectInfo = ProjectInfo
-    { _projectInfo_modulesInfo :: ModulesInfo
-    , _projectInfo_user        :: NonEmptyString Username
-    , _projectInfo_repo        :: NonEmptyString Repo
-    , _projectInfo_package     :: NonEmptyString Package
-    , _projectInfo_commit      :: NonEmptyString Commit
-    , _projectInfo_publicRepo  :: Bool
-    }
-    deriving (Generic)
-
 type ModulesInfo = Map FilePath ModuleInfo
 
 data ModuleInfo = ModuleInfo
-    { _minfo_asts        :: [ModuleAst]
-    , _minfo_fileContent :: [Text]
+    { _minfo_types    :: Map TypeIndex PrintedType
+    , _minfo_typeRefs :: Map Nat [ModuleAst]
     }
     deriving (Show, Generic)
 
 data ModuleAst = ModuleAst
     { _mast_span            :: Span
-    , _mast_specializedType :: Maybe String
-    , _mast_generalizedType :: Maybe String
+    , _mast_specializedType :: Maybe TypeIndex
+    , _mast_generalizedType :: Maybe TypeIndex
     , _mast_children        :: [ModuleAst]
     }
     deriving (Show, Eq, Generic)
@@ -81,6 +63,7 @@ isOneLine :: Span -> Bool
 isOneLine Span{..} =
   _span_lineStart == _span_lineEnd
 
+
 -- ** initial
 
 
@@ -90,24 +73,7 @@ data RawModule ast line = RawModule
     , _rawModule_fileContent :: line
     }
 
--- ** intermediate
-
-data LineAst = LineAst
-    { _lineAst_line :: Text
-    , _lineAst_asts :: [ModuleAst]
-    }
-    deriving Show
-
-
 -- * json
-
-instance Aeson.ToJSON ProjectInfo where
-  toJSON =
-    Aeson.genericToJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_projectInfo_" :: String) }
-
-instance Aeson.FromJSON ProjectInfo where
-  parseJSON =
-    Aeson.genericParseJSON Aeson.defaultOptions { Aeson.fieldLabelModifier = drop $ length ("_projectInfo_" :: String) }
 
 instance Aeson.ToJSON ModuleInfo where
   toJSON =

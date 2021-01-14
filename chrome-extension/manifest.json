@@ -6,16 +6,21 @@
              "128": "icons/izuna-128.png"
            },
   "description": "Better Haskell code review for Github!",
-  "permissions": [ "tabs", "https://izuna-server.patchgirl.io/"],
+  "permissions": [ "declarativeContent",                  // enable/disable izuna when the page change from/to a github page
+                   "tabs",                                // communicate between content and background script, also modify active tab
+                   "storage",                             // store user prefs
+                   "https://izuna-server.patchgirl.io/",  // fetch izuna information from izuna server
+                   "http://localhost/"                    // dev debug
+                 ],
   "background": {
-    "scripts": [ "background.js" ],
+    "scripts": [ "src/background.js" ],
     "persistent": false
   },
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
-      "css": ["contentScript.css"],
-      "js": ["app.js", "popper-2.5.4.min.js", "contentScript.js"]
+      "css": [ "css/contentScript.css" ],
+      "js": [ "dist/contentScript.js" ]
     }
   ],
   "page_action": {
