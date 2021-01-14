@@ -53,6 +53,7 @@ library:
   - izuna-builder
   - filepath
   - mtl
+  - containers
   - servant-server
   - servant-flatten
   - wai-cors

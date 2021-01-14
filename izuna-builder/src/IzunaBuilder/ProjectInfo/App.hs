@@ -10,6 +10,7 @@ import qualified Data.Aeson                           as Aeson
 
 -- ** base
 
+import qualified Control.Exception                    as Exception
 import           Data.Function                        ((&))
 import           Data.Functor                         ((<&>))
 import qualified Data.List                            as List
@@ -17,10 +18,6 @@ import qualified Data.List                            as List
 -- ** tar
 
 import qualified Codec.Archive.Tar                    as Tar
-
--- ** html entities
-
-import qualified HTMLEntities.Text                    as Html
 
 -- ** transformers
 
@@ -56,13 +53,6 @@ import qualified GHC.Natural                          as Ghc
 import qualified HieTypes                             as Ghc
 import qualified SrcLoc                               as Ghc
 
--- ** text
-
-import qualified Data.Text                            as T
-import qualified Data.Text.Encoding                   as T
-
---import           Debug.Pretty.Simple
-
 -- ** async
 
 import qualified Control.Concurrent.Async             as Async
@@ -89,10 +79,12 @@ saveProjectInfoHandler
   -> MultipartData Tmp
   -> m ()
 saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
-  IO.liftIO $ createDirectory directoryPath
-  IO.liftIO $  Monad.forM_ files $ \file -> do
-    extractHieTar directoryPath file
-    _ <- Async.async (buildProjectInfo directoryPath >>= writeProjectInfo directoryPath)
+  IO.liftIO $ do
+    df <- getDynFlags
+    createDirectory directoryPath
+    Monad.forM_ files $ extractHieTar directoryPath
+    _ <- Async.async $
+      buildProjectInfo directoryPath df >>= M.traverseWithKey (saveModuleInfo directoryPath)
     return ()
   where
     directoryPath :: FilePath
@@ -112,45 +104,96 @@ saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
     extractHieTar targetFolder FileData{..}=
       Tar.extract targetFolder fdPayload
 
+    defaultProjectInfoBaseDir :: FilePath
+    defaultProjectInfoBaseDir = "./backup"
 
 -- * build project info
 
-buildProjectInfo :: FilePath -> IO ModulesInfo
-buildProjectInfo hieDirectory = do
-  dynFlags <- getDynFlags
-  hieFiles <- parseHieFiles [ hieDirectory ]
-  hieFiles &
-    filter (not . generatedFile) &
-    convertHieFilesToMap &
-    M.map (\rawModule -> rawModule & convertContentToText & buildAst
-            dynFlags & generateDom) &
-    return
+buildProjectInfo
+  :: FilePath
+  -> DynFlags
+  -> IO ModulesInfo
+buildProjectInfo hieDirectory df = do
+  hieFiles <- getHieFiles hieDirectory
+  let filePathToRawModule = getFilePathToRawModule hieFiles & M.map removeUselessNodes
+  return $ M.map (\rawModule ->
+                    ModuleInfo { _minfo_types = recoverTypes df rawModule
+                               , _minfo_typeRefs = buildModuleInfo rawModule
+                               }
+                 ) filePathToRawModule
   where
-    generatedFile :: HieFile -> Bool
-    generatedFile Ghc.HieFile {..} =
-      ".stack-work" `List.isPrefixOf` hie_hs_file
+    getHieFiles :: FilePath -> IO [HieFile]
+    getHieFiles hieDirectory = do
+      hieFiles <- parseHieFiles [ hieDirectory ]
+      hieFiles & filter (not . generatedFile) & return
+        where
+          generatedFile :: HieFile -> Bool
+          generatedFile Ghc.HieFile {..} =
+            ".stack-work" `List.isPrefixOf` hie_hs_file
 
-    convertHieFilesToMap :: [HieFile] -> M.Map FilePath (RawModule TypeIndex ByteString)
-    convertHieFilesToMap hieFiles =
-      hieFiles <&> convertHieToRawModule & M.fromList
+    getFilePathToRawModule :: [HieFile] -> Map FilePath (RawModule TypeIndex ByteString)
+    getFilePathToRawModule hieFiles = do
+      convertHieFilesToMap hieFiles
+        where
+          convertHieFilesToMap :: [HieFile] -> M.Map FilePath (RawModule TypeIndex ByteString)
+          convertHieFilesToMap hieFiles =
+            hieFiles <&> convertHieToRawModule & M.fromList
 
-    buildAst :: DynFlags -> RawModule TypeIndex [Text] -> [LineAst]
-    buildAst dynFlags rawModule =
-      rawModule &
-      recoverTypes dynFlags &
-      removeUselessNodes &
-      convertRawModuleToLineAst <&>
-      fillInterval
+    buildModuleInfo :: RawModule TypeIndex ByteString -> Map Nat [ModuleAst]
+    buildModuleInfo rawModule =
+      rawModule & convertRawModuleToModuleAst & groupByLine
 
--- * write project info
+-- * convert raw module to raw lines
 
-writeProjectInfo :: FilePath -> ModulesInfo -> IO ()
-writeProjectInfo hieDirectory modulesInfo = do
-  M.traverseWithKey encode modulesInfo >> return ()
+-- | instead of handling data as a whole, we split it by line of code
+-- doing so will help further down the pipe when we need to generate DOM (that can't handle multiline yet)
+convertRawModuleToModuleAst :: RawModule TypeIndex ByteString -> ModuleAst
+convertRawModuleToModuleAst RawModule{..} =
+  hieAstToModuleAst _rawModule_hieAst
   where
-    encode :: FilePath -> ModuleInfo -> IO ()
-    encode filePath moduleInfo = do
-      Aeson.encodeFile (hieDirectory </> "json" </> filePath) moduleInfo
+    hieAstToModuleAst :: HieAST TypeIndex -> ModuleAst
+    hieAstToModuleAst Ghc.Node{..} =
+      ModuleAst { _mast_span =
+                  -- line and column starts at 1 in hie ast
+                  Span { _span_lineStart = Ghc.intToNatural $ Ghc.srcSpanStartLine nodeSpan - 1
+                       , _span_lineEnd   = Ghc.intToNatural $ Ghc.srcSpanEndLine nodeSpan - 1
+                       , _span_colStart  = Ghc.intToNatural $ colPos $ Ghc.srcSpanStartCol nodeSpan
+                       , _span_colEnd    = Ghc.intToNatural $ colPos $ Ghc.srcSpanEndCol nodeSpan
+                       }
+                , _mast_specializedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & fst
+                , _mast_generalizedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & snd
+                , _mast_children = nodeChildren <&> hieAstToModuleAst
+                }
+      where
+        {- | I don't understand this... Sometimes, hie returns either 0 or a negative value the column position for. todo: investigate -}
+        colPos :: Int -> Int
+        colPos = \case
+          0 -> 0
+          positiveNumber -> positiveNumber - 1
+
+        specializedAndGeneralizedType :: [TypeIndex] -> (Maybe TypeIndex, Maybe TypeIndex)
+        specializedAndGeneralizedType = \case
+          [s, g] -> (Just s, Just g)
+          [s]    -> (Just s, Nothing)
+          _      -> (Nothing, Nothing)
+
+-- * save modules info
+
+saveModuleInfo
+  :: FilePath
+  -> FilePath
+  -> ModuleInfo
+  -> IO ()
+saveModuleInfo hieDirectory filePath projectInfo = do
+  let (subDir, filename)  = FilePath.splitFileName filePath
+  Dir.createDirectoryIfMissing True (moduleDirectory </> subDir)
+  Exception.try (Aeson.encodeFile (moduleDirectory </> subDir </> filename) projectInfo) >>= \case
+    Left (exception :: Exception.IOException) -> do
+      putStrLn $ "Error while saving file:" <> filePath <> " in: " <> hieDirectory <> " - " <> show exception
+      return ()
+    Right _ -> return ()
+  where
+    moduleDirectory = hieDirectory </> "json"
 
 -- * convert hie to raw module
 
@@ -198,185 +241,35 @@ convertHieToRawModule hie@Ghc.HieFile {..} =
 
 -- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
 -- children, we get rid of it
-removeUselessNodes :: RawModule PrintedType a -> RawModule PrintedType a
+removeUselessNodes :: RawModule a b -> RawModule a b
 removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
   rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
   where
-    go :: HieAST PrintedType -> [HieAST PrintedType] -> [HieAST PrintedType]
+    go :: HieAST a -> [HieAST a] -> [HieAST a]
     go hieAst@Ghc.Node{..} acc =
       case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
         ([], False) -> acc
         (_, False) -> foldr go [] nodeChildren ++ acc
         _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
 
-    hasSpecializedType :: [PrintedType] -> Bool
+    hasSpecializedType :: [a] -> Bool
     hasSpecializedType = not . List.null
 
-
--- * convert content to text
-
-convertContentToText :: RawModule a ByteString -> RawModule a [Text]
-convertContentToText rawModule@RawModule{..} =
-  rawModule { _rawModule_fileContent = _rawModule_fileContent & T.decodeUtf8 & T.lines
-            }
+-- * group by line
 
 
--- * convert raw module to raw lines
-
--- | instead of handling data as a whole, we split by line of code
--- doing so will help further down the pipe when we need to generate DOM (that can't handle multiline yet)
-convertRawModuleToLineAst :: RawModule PrintedType [Text] -> [ (Nat, LineAst) ]
-convertRawModuleToLineAst RawModule{..} =
-    linesWithIndex <&> buildDom groupedByLine
+groupByLine :: ModuleAst -> Map Nat [ModuleAst]
+groupByLine moduleAst2 =
+    List.foldl' go M.empty [moduleAst2]
   where
-    linesWithIndex :: [(Nat, Text)]
-    linesWithIndex = List.zip [0..] _rawModule_fileContent
-
-    groupedByLine :: Map Nat [ModuleAst]
-    groupedByLine =
-      groupByLineIndex [ hieAstToModuleAst _rawModule_hieAst ]
-
-    groupByLineIndex :: [ModuleAst] -> Map Nat [ModuleAst]
-    groupByLineIndex modulesAst =
-      List.foldl' go M.empty modulesAst
-      where
-        go :: Map Nat [ModuleAst] -> ModuleAst -> Map Nat [ModuleAst]
-        go acc moduleAst@ModuleAst{..} =
-          case indexOneLineSpan _mast_span of
-            Nothing    -> List.foldl' go acc _mast_children
-            Just index -> M.insertWith (flip (++)) index [moduleAst] acc
-
-    hieAstToModuleAst :: HieAST PrintedType -> ModuleAst
-    hieAstToModuleAst Ghc.Node{..} =
-      ModuleAst { _mast_span =
-                  -- line and column starts at 1 in hie ast
-                  Span { _span_lineStart = Ghc.intToNatural $ Ghc.srcSpanStartLine nodeSpan - 1
-                       , _span_lineEnd   = Ghc.intToNatural $ Ghc.srcSpanEndLine nodeSpan - 1
-                       , _span_colStart  = Ghc.intToNatural $ colPos $ Ghc.srcSpanStartCol nodeSpan
-                       , _span_colEnd    = Ghc.intToNatural $ colPos $ Ghc.srcSpanEndCol nodeSpan
-                       }
-                , _mast_specializedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & fst
-                , _mast_generalizedType = nodeInfo & Ghc.nodeType & specializedAndGeneralizedType & snd
-                , _mast_children = nodeChildren <&> hieAstToModuleAst
-                }
-      where
-        {- | I don't understand this... Sometimes, hie returns either 0 or a negative value the column position for. todo: investigate -}
-        colPos :: Int -> Int
-        colPos = \case
-          0 -> 0
-          positiveNumber -> positiveNumber - 1
-
-        specializedAndGeneralizedType :: [PrintedType] -> (Maybe String, Maybe String)
-        specializedAndGeneralizedType = \case
-          [s, g] -> (Just s, Just g)
-          [s]     -> (Just s, Nothing)
-          _          -> (Nothing, Nothing)
+    go :: Map Nat [ModuleAst] -> ModuleAst -> Map Nat [ModuleAst]
+    go acc moduleAst@ModuleAst{..} =
+      case indexOneLineSpan _mast_span of
+        Nothing    -> List.foldl' go acc _mast_children
+        Just index -> M.insertWith (flip (++)) index [moduleAst] acc
 
     indexOneLineSpan :: Span -> Maybe Nat
     indexOneLineSpan span@Span{..} =
       case isOneLine span of
         False -> Nothing
         True  -> Just _span_lineStart
-
-    buildDom :: Map Nat [ModuleAst] -> (Nat, Text) -> (Nat, LineAst)
-    buildDom indexToAst (index, line) =
-      case M.lookup index indexToAst of
-        Nothing  -> (index, LineAst line [])
-        Just ast -> (index, LineAst line ast)
-
--- * fill interval
-
--- | this function takes a list of Ast for a given line and make sure
--- it covers the whole line by filling the ast's gaps
-fillInterval :: (Nat, LineAst) -> LineAst
-fillInterval (index, LineAst line asts) =
-  let
-    max = Ghc.intToNatural $  T.length line
-    (newMax, filledIntervals) = List.foldr go (max, []) asts
-  in
-    LineAst line $ fillBeginning True index 0 newMax filledIntervals
-  where
-    go :: ModuleAst -> (Nat, [ModuleAst]) -> (Nat, [ModuleAst])
-    go moduleAst@ModuleAst{ _mast_children
-                          , _mast_span = Span{ _span_colStart, _span_colEnd }
-                          } (max, asts) =
-      let
-        (newMax, newChildrenIntervals) = List.foldr go (_span_colEnd, []) _mast_children
-        newChildren = fillBeginning False index _span_colStart newMax newChildrenIntervals
-        updatedModule = moduleAst { _mast_children = newChildren }
-      in
-      case _span_colEnd < max of
-        True ->
-          ( _span_colStart
-          , updatedModule
-            : ModuleAst { _mast_span =
-                          Span { _span_lineStart = index
-                               , _span_lineEnd   = index
-                               , _span_colStart  = _span_colEnd
-                               , _span_colEnd    = max
-                               }
-                        , _mast_specializedType = Nothing
-                        , _mast_generalizedType = Nothing
-                        , _mast_children = []
-                        }
-            : asts
-         )
-
-        False ->
-            (_span_colStart, updatedModule : asts)
-
-    fillBeginning :: Bool -> Nat -> Nat -> Nat -> [ModuleAst] -> [ModuleAst]
-    fillBeginning isTop index min max intervals =
-      case (isTop, intervals) of
-        (False, []) -> []
-        _ -> case min /= max of
-          False -> intervals
-          True ->
-            ModuleAst { _mast_span =
-                        Span { _span_lineStart = index
-                             , _span_lineEnd   = index
-                             , _span_colStart  = min
-                             , _span_colEnd    = max
-                             }
-                      , _mast_specializedType = Nothing
-                      , _mast_generalizedType = Nothing
-                      , _mast_children = []
-                      } : intervals
-
--- * generate dom
-
-
-generateDom :: [LineAst] -> ModuleInfo
-generateDom linesAsts =
-  ModuleInfo { _minfo_asts = linesAsts >>= _lineAst_asts
-             , _minfo_fileContent = linesAsts <&> renderLine
-             }
-  where
-    renderLine :: LineAst -> Text
-    renderLine LineAst{..} =
-      List.foldr (go _lineAst_line) "" _lineAst_asts
-
-    go :: Text -> ModuleAst -> Text -> Text
-    go line ModuleAst{..} acc =
-      case _mast_children of
-        [] -> render (fetchTextInSpan _mast_span) <> acc
-        _  -> List.foldr (go line) acc _mast_children
-      where
-        render :: Text -> Text
-        render text =
-          case _mast_specializedType of
-            Nothing -> text
-            Just t  -> "<span data-specialized-type='" <> T.pack t <> "'>" <> text <> "</span>"
-
-        fetchTextInSpan :: Span -> Text
-        fetchTextInSpan Span{..} =
-          line
-            & T.drop (Ghc.naturalToInt _span_colStart)
-            & T.take (Ghc.naturalToInt (_span_colEnd - _span_colStart))
-            & Html.text
-
-
--- * util
-
-defaultProjectInfoBaseDir :: FilePath
-defaultProjectInfoBaseDir = "./backup"

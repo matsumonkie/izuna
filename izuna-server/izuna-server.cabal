@@ -38,6 +38,7 @@ library
       aeson
     , base >=4.7 && <5
     , case-insensitive
+    , containers
     , dhall
     , directory
     , filepath

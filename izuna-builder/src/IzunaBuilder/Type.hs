@@ -3,6 +3,7 @@
 
 module IzunaBuilder.Type where
 
+import qualified Data.Array         as Array
 import qualified Data.ByteString    as ByteString
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map           as M
@@ -25,6 +26,7 @@ type Text = T.Text
 type Map = M.Map
 type Nat = Natural.Natural
 type NonEmpty = NE.NonEmpty
+type Array = Array.Array
 
 data GhcVersion
 data Username
