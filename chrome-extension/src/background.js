@@ -104,7 +104,7 @@ function getPullRequestInfo(pathname) {
  * and the latest commit oid (i.e: the latest commit we pushed for this PR)
  */
 function fetchPullRequestCommitsDetails(pullRequestInfo) {
-  const pullRequestInfoUrl = 'https://izuna-server.patchgirl.io/api/pullRequestInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.pullRequest;
+  const pullRequestInfoUrl = izunaServerUrl + '/api/pullRequestInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.pullRequest;
   return fetch(pullRequestInfoUrl)
     .then(response => {
       if(response.ok) {
@@ -116,10 +116,10 @@ function fetchPullRequestCommitsDetails(pullRequestInfo) {
 }
 
 async function fetchFilesInfo(pullRequestInfo, commitId, files) {
-//  const izunaServerUrl = 'https://izuna-server.patchgirl.io/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
-  const izunaServerUrl = 'http://localhost:3001/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
+  const url = izunaServerUrl + '/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
+//  const izunaServerUrl = 'http://localhost:3001/api/projectInfo/' + pullRequestInfo.user + '/' + pullRequestInfo.repo + '/' + pullRequestInfo.packageName + '/' + commitId;
 
-  return fetch( izunaServerUrl,
+  return fetch( url,
                 { method: 'POST',
                   credentials: 'omit',
                   headers: { 'Content-Type': 'application/json' },
@@ -136,3 +136,5 @@ async function fetchFilesInfo(pullRequestInfo, commitId, files) {
       }
     });
 }
+
+const izunaServerUrl = 'https://izuna.app';
