@@ -65,6 +65,7 @@ import           IzunaBuilder.HieFile.App
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
 import           IzunaBuilder.ProjectInfo.RecoverType
+import           IzunaBuilder.ProjectInfo.Util
 import           IzunaBuilder.Type
 
 -- * handler
@@ -74,28 +75,26 @@ saveProjectInfoHandler
   => NonEmptyString GhcVersion
   -> NonEmptyString Username
   -> NonEmptyString Repo
-  -> NonEmptyString Package
   -> NonEmptyString Commit
   -> [String]
   -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler _ username repo package commit projectRootAsList MultipartData{files} = do
+saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{files} = do
   IO.liftIO $ do
     df <- getDynFlags
-    createDirectory directoryPath
-    Monad.forM_ files $ extractHieTar directoryPath
-    _ <- Async.async $
-      buildProjectInfo directoryPath df >>= M.traverseWithKey (saveModuleInfo directoryPath projectRoot)
+    createDirectory projectPath
+    Monad.forM_ files $ extractHieTar hiePath
+    _ <- Async.async $ do
+      projectInfo <- buildProjectInfo hiePath df
+      _ <- M.traverseWithKey (saveModuleInfo projectPath projectRoot) projectInfo
+      Dir.removeDirectoryRecursive hiePath
     return ()
   where
-    directoryPath :: FilePath
-    directoryPath =
-      FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString username
-                        , toString repo
-                        , toString package
-                        , toString commit
-                        ]
+    projectPath :: FilePath
+    projectPath = getProjectPath username repo commit
+
+    hiePath :: FilePath
+    hiePath = getHiePath projectPath
 
     createDirectory :: FilePath -> IO ()
     createDirectory directory =
@@ -109,8 +108,6 @@ saveProjectInfoHandler _ username repo package commit projectRootAsList Multipar
     projectRoot =
       FilePath.joinPath projectRootAsList
 
-    defaultProjectInfoBaseDir :: FilePath
-    defaultProjectInfoBaseDir = "./backup"
 
 -- * build project info
 
@@ -119,7 +116,7 @@ buildProjectInfo
   -> DynFlags
   -> IO ModulesInfo
 buildProjectInfo hieDirectory df = do
-  hieFiles <- getHieFiles hieDirectory
+  hieFiles <- getHieFiles
   let filePathToRawModule = getFilePathToRawModule hieFiles & M.map removeUselessNodes
   return $ M.map (\rawModule ->
                     ModuleInfo { _minfo_types = recoverTypes df rawModule
@@ -127,8 +124,8 @@ buildProjectInfo hieDirectory df = do
                                }
                  ) filePathToRawModule
   where
-    getHieFiles :: FilePath -> IO [HieFile]
-    getHieFiles hieDirectory = do
+    getHieFiles :: IO [HieFile]
+    getHieFiles = do
       hieFiles <- parseHieFiles [ hieDirectory ]
       hieFiles & filter (not . generatedFile) & return
         where
@@ -190,16 +187,18 @@ saveModuleInfo
   -> FilePath
   -> ModuleInfo
   -> IO ()
-saveModuleInfo hieDirectory projectRoot filePath projectInfo = do
+saveModuleInfo projectPath projectRoot filePath projectInfo = do
   let (subDir, filename) = FilePath.splitFileName filePath
-  Dir.createDirectoryIfMissing True (moduleDirectory </> subDir)
-  Exception.try (Aeson.encodeFile (moduleDirectory </> subDir </> filename) projectInfo) >>= \case
+  Dir.createDirectoryIfMissing True (jsonPath </> subDir)
+  Exception.try (Aeson.encodeFile (jsonPath </> subDir </> filename) projectInfo) >>= \case
     Left (exception :: Exception.IOException) -> do
-      putStrLn $ "Error while saving file:" <> filePath <> " in: " <> hieDirectory <> " - " <> show exception
+      putStrLn $ "Error while saving file:" <> filePath <> " in: " <> projectPath <> " - " <> show exception
       return ()
     Right _ -> return ()
   where
-    moduleDirectory = hieDirectory </> "json" </> projectRoot
+    jsonPath :: FilePath
+    jsonPath =
+      getJsonPath projectPath projectRoot
 
 -- * convert hie to raw module
 

@@ -31,7 +31,6 @@ type Array = Array.Array
 data GhcVersion
 data Username
 data Repo
-data Package
 data Commit
 data CommitId
 data ProjectRoot

@@ -30,6 +30,7 @@ library
       IzunaBuilder.ProjectInfo.App
       IzunaBuilder.ProjectInfo.Model
       IzunaBuilder.ProjectInfo.RecoverType
+      IzunaBuilder.ProjectInfo.Util
       IzunaBuilder.Server
       IzunaBuilder.Type
   other-modules:

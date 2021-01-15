@@ -61,7 +61,6 @@ type ProjectInfoApi =
     :> Capture "ghcVersion" (NonEmptyString GhcVersion)
     :> Capture "username" (NonEmptyString Username)
     :> Capture "repo" (NonEmptyString Repo)
-    :> Capture "package" (NonEmptyString Package)
     :> Capture "commit" (NonEmptyString Commit)
     :> CaptureAll "projectRoot" String
     :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] ()
