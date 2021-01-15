@@ -16,21 +16,19 @@
  */
 export class Splitter {
 
-  constructor(lineNumber, fragmentConstructor, document, Node) {
-    this.lineNumber = lineNumber;
-    this.fragmentConstructor = fragmentConstructor;
+  constructor(document = document, Node = Node) {
     this.document = document;
     this.Node = Node;
   }
 
-  split(dom) {
+  split(docFragment, dom, lineNumber) {
     const foo = (node, charPos) => {
       if(node.nodeType === this.Node.TEXT_NODE) {
         var parent = this.document.createElement("span");
         const characterNodes = Array.from(node.textContent).map((character) => {
           var newChar = this.document.createElement("span");
           newChar.setAttribute('class', 'izuna-char');
-          newChar.setAttribute('data-row', this.lineNumber);
+          newChar.setAttribute('data-row', lineNumber);
           newChar.setAttribute('data-col', charPos);
           newChar.textContent = character;
           charPos = charPos + 1;
@@ -51,7 +49,7 @@ export class Splitter {
     }
 
     var [newNode, _] = foo(dom.cloneNode(true), 0);
-    var docFragment = this.fragmentConstructor().appendChild(newNode);
+    docFragment.appendChild(newNode);
 
     return docFragment;
   }

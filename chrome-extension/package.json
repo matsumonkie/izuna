@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "webpack",
-    "watch-build": "webpack --watch --mode development",
+    "watch-build": "webpack --watch --mode production",
     "watch-test": "mocha --watch --reporter mocha-clearscreen-reporter --require esm"
   },
   "keywords": [],
