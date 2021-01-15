@@ -65,6 +65,7 @@ import           IzunaBuilder.HieFile.App
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
 import           IzunaBuilder.ProjectInfo.RecoverType
+import           IzunaBuilder.ProjectInfo.Util
 import           IzunaBuilder.Type
 
 -- * handler
@@ -74,27 +75,26 @@ saveProjectInfoHandler
   => NonEmptyString GhcVersion
   -> NonEmptyString Username
   -> NonEmptyString Repo
-  -> NonEmptyString Package
   -> NonEmptyString Commit
+  -> [String]
   -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
+saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{files} = do
   IO.liftIO $ do
     df <- getDynFlags
-    createDirectory directoryPath
-    Monad.forM_ files $ extractHieTar directoryPath
-    _ <- Async.async $
-      buildProjectInfo directoryPath df >>= M.traverseWithKey (saveModuleInfo directoryPath)
+    createDirectory projectPath
+    Monad.forM_ files $ extractHieTar hiePath
+    _ <- Async.async $ do
+      projectInfo <- buildProjectInfo hiePath df
+      _ <- M.traverseWithKey (saveModuleInfo projectPath projectRoot) projectInfo
+      Dir.removeDirectoryRecursive hiePath
     return ()
   where
-    directoryPath :: FilePath
-    directoryPath =
-      FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString username
-                        , toString repo
-                        , toString package
-                        , toString commit
-                        ]
+    projectPath :: FilePath
+    projectPath = getProjectPath username repo commit
+
+    hiePath :: FilePath
+    hiePath = getHiePath projectPath
 
     createDirectory :: FilePath -> IO ()
     createDirectory directory =
@@ -104,8 +104,10 @@ saveProjectInfoHandler _ username repo package commit MultipartData{files} = do
     extractHieTar targetFolder FileData{..}=
       Tar.extract targetFolder fdPayload
 
-    defaultProjectInfoBaseDir :: FilePath
-    defaultProjectInfoBaseDir = "./backup"
+    projectRoot :: FilePath
+    projectRoot =
+      FilePath.joinPath projectRootAsList
+
 
 -- * build project info
 
@@ -114,7 +116,7 @@ buildProjectInfo
   -> DynFlags
   -> IO ModulesInfo
 buildProjectInfo hieDirectory df = do
-  hieFiles <- getHieFiles hieDirectory
+  hieFiles <- getHieFiles
   let filePathToRawModule = getFilePathToRawModule hieFiles & M.map removeUselessNodes
   return $ M.map (\rawModule ->
                     ModuleInfo { _minfo_types = recoverTypes df rawModule
@@ -122,8 +124,8 @@ buildProjectInfo hieDirectory df = do
                                }
                  ) filePathToRawModule
   where
-    getHieFiles :: FilePath -> IO [HieFile]
-    getHieFiles hieDirectory = do
+    getHieFiles :: IO [HieFile]
+    getHieFiles = do
       hieFiles <- parseHieFiles [ hieDirectory ]
       hieFiles & filter (not . generatedFile) & return
         where
@@ -182,18 +184,21 @@ convertRawModuleToModuleAst RawModule{..} =
 saveModuleInfo
   :: FilePath
   -> FilePath
+  -> FilePath
   -> ModuleInfo
   -> IO ()
-saveModuleInfo hieDirectory filePath projectInfo = do
-  let (subDir, filename)  = FilePath.splitFileName filePath
-  Dir.createDirectoryIfMissing True (moduleDirectory </> subDir)
-  Exception.try (Aeson.encodeFile (moduleDirectory </> subDir </> filename) projectInfo) >>= \case
+saveModuleInfo projectPath projectRoot filePath projectInfo = do
+  let (subDir, filename) = FilePath.splitFileName filePath
+  Dir.createDirectoryIfMissing True (jsonPath </> subDir)
+  Exception.try (Aeson.encodeFile (jsonPath </> subDir </> filename) projectInfo) >>= \case
     Left (exception :: Exception.IOException) -> do
-      putStrLn $ "Error while saving file:" <> filePath <> " in: " <> hieDirectory <> " - " <> show exception
+      putStrLn $ "Error while saving file:" <> filePath <> " in: " <> projectPath <> " - " <> show exception
       return ()
     Right _ -> return ()
   where
-    moduleDirectory = hieDirectory </> "json"
+    jsonPath :: FilePath
+    jsonPath =
+      getJsonPath projectPath projectRoot
 
 -- * convert hie to raw module
 
@@ -237,24 +242,6 @@ convertHieToRawModule hie@Ghc.HieFile {..} =
           }
 
 
--- * remove useless nodes
-
--- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
--- children, we get rid of it
-removeUselessNodes :: RawModule a b -> RawModule a b
-removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
-  rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
-  where
-    go :: HieAST a -> [HieAST a] -> [HieAST a]
-    go hieAst@Ghc.Node{..} acc =
-      case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
-        ([], False) -> acc
-        (_, False) -> foldr go [] nodeChildren ++ acc
-        _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
-
-    hasSpecializedType :: [a] -> Bool
-    hasSpecializedType = not . List.null
-
 -- * group by line
 
 
@@ -273,3 +260,20 @@ groupByLine moduleAst2 =
       case isOneLine span of
         False -> Nothing
         True  -> Just _span_lineStart
+-- * remove useless nodes
+
+-- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
+-- children, we get rid of it
+removeUselessNodes :: RawModule a b -> RawModule a b
+removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
+  rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
+  where
+    go :: HieAST a -> [HieAST a] -> [HieAST a]
+    go hieAst@Ghc.Node{..} acc =
+      case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
+        ([], False) -> acc
+        (_, False) -> foldr go [] nodeChildren ++ acc
+        _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
+
+    hasSpecializedType :: [a] -> Bool
+    hasSpecializedType = not . List.null

@@ -39,6 +39,7 @@ import qualified System.FilePath.Posix          as FilePath
 
 import           IzunaBuilder.NonEmptyString
 import           IzunaBuilder.ProjectInfo.Model
+import           IzunaBuilder.ProjectInfo.Util
 import           IzunaBuilder.Type
 
 -- * get project
@@ -48,12 +49,11 @@ getProjectInfoHandler
   :: (IO.MonadIO m, Except.MonadError Servant.ServerError m)
   => NonEmptyString Username
   -> NonEmptyString Repo
-  -> NonEmptyString Package
   -> NonEmptyString Commit
   -> [String]
+  -> [String]
   -> m ModulesInfo
-getProjectInfoHandler username repo package commit files = do
-  IO.liftIO $ putStrLn $ getFilePath ""
+getProjectInfoHandler username repo commit projectRootAsList files = do
   allFileExist <- IO.liftIO $ T.for files (Dir.doesFileExist . getFilePath) <&> and
   case allFileExist of
     False -> Servant.throwError Servant.err404
@@ -64,24 +64,26 @@ getProjectInfoHandler username repo package commit files = do
                     ) <&> checkDecodeError
       case eFilesInfo of
         Left errors -> do
-          IO.liftIO $ putStrLn $ "For project: " <> projectFolder <> " - could not decode file(s): " <> show errors
+          IO.liftIO $ putStrLn $ "For project: " <> projectPath <> " - could not decode file(s): " <> show errors
           Servant.throwError Servant.err500
         Right filesInfo ->
           return $ Map.fromList filesInfo
   where
-    projectFolder :: FilePath
-    projectFolder =
-      FilePath.joinPath [ defaultProjectInfoBaseDir
-                        , toString username
-                        , toString repo
-                        , toString package
-                        , toString commit
-                        , "json"
-                        ]
+    projectPath :: FilePath
+    projectPath = getProjectPath username repo commit
+
+    jsonPath :: FilePath
+    jsonPath =
+      getJsonPath projectPath projectRoot
 
     getFilePath :: FilePath -> FilePath
     getFilePath file =
-      projectFolder </> file
+      jsonPath </> file
+
+    projectRoot :: FilePath
+    projectRoot =
+      FilePath.joinPath projectRootAsList
+
 
 checkDecodeError :: [ (FilePath, Maybe ModuleInfo) ] -> Either [FilePath] [ (FilePath, ModuleInfo) ]
 checkDecodeError filesInfo = do
@@ -94,9 +96,3 @@ checkDecodeError filesInfo = do
         (Left errors, Nothing) -> Left (filePath : errors)
         (Right _, Nothing) -> Left [filePath]
         (Right valid, Just moduleInfo) -> Right ((filePath, moduleInfo): valid)
-
-
--- * util
-
-defaultProjectInfoBaseDir :: FilePath
-defaultProjectInfoBaseDir = "./backup"

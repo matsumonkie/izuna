@@ -66,7 +66,6 @@ isOneLine Span{..} =
 
 -- ** initial
 
-
 data RawModule ast line = RawModule
     { _rawModule_hieTypes    :: Array TypeIndex HieTypeFlat
     , _rawModule_hieAst      :: HieAST ast
