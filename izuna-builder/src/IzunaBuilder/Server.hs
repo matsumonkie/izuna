@@ -63,7 +63,7 @@ type ProjectInfoApi =
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "package" (NonEmptyString Package)
     :> Capture "commit" (NonEmptyString Commit)
-    :> Capture "projectRoot" (NonEmptyString ProjectRoot)
+    :> CaptureAll "projectRoot" String
     :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] ()
 
 

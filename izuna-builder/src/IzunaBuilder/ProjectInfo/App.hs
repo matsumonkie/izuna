@@ -76,10 +76,10 @@ saveProjectInfoHandler
   -> NonEmptyString Repo
   -> NonEmptyString Package
   -> NonEmptyString Commit
-  -> NonEmptyString ProjectRoot
+  -> [String]
   -> MultipartData Tmp
   -> m ()
-saveProjectInfoHandler _ username repo package commit projectRoot MultipartData{files} = do
+saveProjectInfoHandler _ username repo package commit projectRootAsList MultipartData{files} = do
   IO.liftIO $ do
     df <- getDynFlags
     createDirectory directoryPath
@@ -104,6 +104,10 @@ saveProjectInfoHandler _ username repo package commit projectRoot MultipartData{
     extractHieTar :: FilePath -> FileData Tmp -> IO ()
     extractHieTar targetFolder FileData{..}=
       Tar.extract targetFolder fdPayload
+
+    projectRoot :: FilePath
+    projectRoot =
+      FilePath.joinPath projectRootAsList
 
     defaultProjectInfoBaseDir :: FilePath
     defaultProjectInfoBaseDir = "./backup"
@@ -182,7 +186,7 @@ convertRawModuleToModuleAst RawModule{..} =
 
 saveModuleInfo
   :: FilePath
-  -> NonEmptyString ProjectRoot
+  -> FilePath
   -> FilePath
   -> ModuleInfo
   -> IO ()
@@ -195,7 +199,7 @@ saveModuleInfo hieDirectory projectRoot filePath projectInfo = do
       return ()
     Right _ -> return ()
   where
-    moduleDirectory = hieDirectory </> "json" </> toString projectRoot
+    moduleDirectory = hieDirectory </> "json" </> projectRoot
 
 -- * convert hie to raw module
 
