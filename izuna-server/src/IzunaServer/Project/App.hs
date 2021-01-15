@@ -30,11 +30,6 @@ import qualified Servant
 import qualified Control.Monad.Except           as Except
 import qualified Control.Monad.IO.Class         as IO
 
--- ** filepath
-
-import           System.FilePath.Posix          ((</>))
-import qualified System.FilePath.Posix          as FilePath
-
 -- ** local
 
 import           IzunaBuilder.NonEmptyString
@@ -51,9 +46,8 @@ getProjectInfoHandler
   -> NonEmptyString Repo
   -> NonEmptyString Commit
   -> [String]
-  -> [String]
   -> m ModulesInfo
-getProjectInfoHandler username repo commit projectRootAsList files = do
+getProjectInfoHandler username repo commit files = do
   allFileExist <- IO.liftIO $ T.for files (Dir.doesFileExist . getFilePath) <&> and
   case allFileExist of
     False -> Servant.throwError Servant.err404
@@ -72,18 +66,9 @@ getProjectInfoHandler username repo commit projectRootAsList files = do
     projectPath :: FilePath
     projectPath = getProjectPath username repo commit
 
-    jsonPath :: FilePath
-    jsonPath =
-      getJsonPath projectPath projectRoot
-
     getFilePath :: FilePath -> FilePath
     getFilePath file =
-      jsonPath </> file
-
-    projectRoot :: FilePath
-    projectRoot =
-      FilePath.joinPath projectRootAsList
-
+      getJsonPath projectPath file
 
 checkDecodeError :: [ (FilePath, Maybe ModuleInfo) ] -> Either [FilePath] [ (FilePath, ModuleInfo) ]
 checkDecodeError filesInfo = do

@@ -58,7 +58,6 @@ type ProjectInfoApi =
     :> Capture "username" (NonEmptyString Username)
     :> Capture "repo" (NonEmptyString Repo)
     :> Capture "commit" (NonEmptyString Commit)
-    :> CaptureAll "projectRoot" String
     :> ReqBody '[JSON] [String]
     :> Post '[JSON] ModulesInfo
   )
