@@ -1,5 +1,6 @@
-import { createPopper } from '@popperjs/core';
 import { Splitter } from './splitter.js';
+import { Popper } from './popper.js';
+import { FilesInfo } from './filesInfo.js';
 import { PullRequestPageService } from './pullRequestPageService.js';
 
 chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => {
@@ -36,9 +37,10 @@ Error is: ` + error;
     return;
   }
 
-  const tooltip = mkPopper();
-  document.body.appendChild(tooltip);
-  mkNotificationEvents(tooltip);
+  const filesInfo = new FilesInfo(payload);
+  const popper = new Popper(filesInfo);
+  document.body.appendChild(popper.tooltip);
+  popper.mkNotificationEvents()
 }
 
 function generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo) {
@@ -60,18 +62,16 @@ function generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, 
         } else {
           whichModuleInfo = oldModuleInfo;
         }
-        handleCodeRow(splitter, filePath, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
+        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
       }
 
     });
   }
 }
 
-function handleCodeRow(splitter, filePath, codeNode, lineState, whichModuleInfo, lineNumber) {
-  const newCodeNode = splitter.split(new DocumentFragment(), codeNode, lineNumber);
-  //console.log(newCodeNode);
-  // split code
-  // split code
+function handleCodeRow(splitter, filePath, parentNode, codeNode, lineState, whichModuleInfo, lineNumber) {
+  const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, lineState, lineNumber);
+  parentNode.replaceChild(newCodeNode, codeNode);
 }
 
 //  make an elm application for a given row that will handle the display
@@ -114,57 +114,4 @@ function watchDiffForCodeExpansion (pullRequestPage, splitter, diffDom, splitMod
 
   const observer = new MutationObserver(callback);
   observer.observe(codeDiffDom, config);
-}
-
-
-//  create a popper notification to be used later on
-function mkPopper () {
-  var arrow = document.createElement("div");
-  arrow.setAttribute("id", "arrow");
-  arrow.setAttribute("data-popper-arrow", "");
-
-  var tooltipText = document.createElement("div");
-  tooltipText.setAttribute("id", "tooltipText");
-
-  var tooltip = document.createElement("pre");
-  tooltip.setAttribute("id", "tooltip");
-  tooltip.setAttribute("role", "tooltip");
-  tooltip.appendChild(tooltipText)
-  tooltip.appendChild(arrow)
-
-  return tooltip;
-}
-
-
-// attach a display notification event on all code span that have type annotations
-function mkNotificationEvents(tooltip) {
-  let popperInstance = null;
-
-  const tooltipOptions = {
-    placement: 'top',
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 8],
-        },
-      },
-    ],
-  };
-
-  document.querySelectorAll("span[data-specialized-type]").forEach(span => {
-    span.addEventListener("mouseover", event => {
-      popperInstance = createPopper(span, tooltip, tooltipOptions);
-      tooltip.querySelector('#tooltipText').innerHTML = span.dataset.specializedType.replaceAll(" -> ", " ⟶ ");
-      tooltip.setAttribute('data-show', '');
-    });
-
-    span.addEventListener("mouseleave", event => {
-      tooltip.removeAttribute('data-show');
-      if (popperInstance) {
-        popperInstance.destroy();
-        popperInstance = null;
-      }
-    });
-  });
 }

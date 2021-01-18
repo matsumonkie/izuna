@@ -142,14 +142,17 @@ export class PullRequestPageService {
      * | 8 |   | - someOldCode...
      *
      */
+    const parentNode = diffRowDom.querySelector('td:not(:empty)');
     const [ oldCodeNode, newCodeNode ] = diffRowDom.querySelectorAll('span.blob-code-inner.blob-code-marker');
     if(splitMode) {
       return {
+        parentNode: parentNode,
         oldCodeNode: oldCodeNode,
         newCodeNode: newCodeNode
       };
     } else {
       return {
+        parentNode: parentNode,
         codeNode: oldCodeNode
       };
     }

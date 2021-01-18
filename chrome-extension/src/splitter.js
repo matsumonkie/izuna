@@ -21,13 +21,15 @@ export class Splitter {
     this.Node = Node;
   }
 
-  split(docFragment, dom, lineNumber) {
+  split(docFragment, dom, filePath, state, lineNumber) {
     const foo = (node, charPos) => {
       if(node.nodeType === this.Node.TEXT_NODE) {
         var parent = this.document.createElement("span");
         const characterNodes = Array.from(node.textContent).map((character) => {
           var newChar = this.document.createElement("span");
           newChar.setAttribute('class', 'izuna-char');
+          newChar.setAttribute('data-file-path', filePath);
+          newChar.setAttribute('data-state', state);
           newChar.setAttribute('data-row', lineNumber);
           newChar.setAttribute('data-col', charPos);
           newChar.textContent = character;
