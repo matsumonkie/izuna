@@ -11,7 +11,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist')
   },
   plugins: [
-    new CleanTerminalPlugin()
+    new CleanTerminalPlugin(),
   ],
   module: {
     rules: [
@@ -21,7 +21,10 @@ module.exports = {
         loader: 'babel-loader',
         options: {
           presets: ["@babel/preset-env"],
-          plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-runtime"],
+          plugins: [
+            "@babel/plugin-proposal-class-properties",
+            "@babel/plugin-transform-runtime",
+          ],
         }
       }
     ]

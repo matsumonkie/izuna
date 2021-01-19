@@ -10,20 +10,12 @@ export class IzunaServerService {
     this.pr = pullRequestInfo.pr;
   }
 
-  /*
-   * from a given PR, find the target commit oid (i.e: the commit we are diffing from)
-   * and the latest commit oid (i.e: the latest commit we pushed for this PR)
-   */
-  fetchPullRequestCommitsDetails() {
-    const url = this.serverUrl + '/api/pullRequestInfo/' + this.user + '/' + this.repo + '/' + this.pr;
-    return fetch(url)
-      .then(response => {
-        if(response.ok) {
-          return response.json()
-        } else {
-          throw `Could not fetch pull request information for this PR! Response status: ${response.status} for url: ${response.url}`;
-        }
-      })
+  getPrDetailsUrl() {
+    return [ this.serverUrl, 'api', 'pullRequestInfo', this.user, this.repo, this.pr ].join('/');
+  }
+
+  getFileInfoUrl(commitId) {
+    return [ this.serverUrl, 'api', 'projectInfo', this.user, this.repo, commitId ].join('/');
   }
 
   /*
@@ -31,8 +23,8 @@ export class IzunaServerService {
    * and the latest commit oid (i.e: the latest commit we pushed for this PR)
    */
   fetchPullRequestCommitsDetails() {
-    const url = this.serverUrl + '/api/pullRequestInfo/' + this.user + '/' + this.repo + '/' + this.pr;
-    return fetch(url)
+    console.log(this.getPrDetailsUrl);
+    return fetch(this.getPrDetailsUrl())
       .then(response => {
         if(response.ok) {
           return response.json()
@@ -54,9 +46,7 @@ export class IzunaServerService {
   }
 
   async fetchFileInfo(commitId, files) {
-    const url = this.serverUrl + '/api/projectInfo/' + this.user + '/' + this.repo + '/' + commitId;
-
-    return fetch( url,
+    return fetch( this.getFileInfoUrl(commitId),
                   { method: 'POST',
                     credentials: 'omit',
                     headers: { 'Content-Type': 'application/json' },
