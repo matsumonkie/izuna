@@ -21,6 +21,8 @@ export class Splitter {
     this.Node = Node;
   }
 
+  static #oddClass = "stest"
+
   split(docFragment, dom, filePath, state, lineNumber) {
     const foo = (node, charPos) => {
       if(node.nodeType === this.Node.TEXT_NODE) {
@@ -33,10 +35,23 @@ export class Splitter {
           newChar.setAttribute('data-row', lineNumber);
           newChar.setAttribute('data-col', charPos);
           newChar.textContent = character;
-          charPos = charPos + 1;
-          return newChar;
+          charPos = charPos + 0.5;
+
+          var newChar2 = this.document.createElement("span");
+          newChar2.setAttribute('class', 'izuna-fake-char');
+          newChar2.setAttribute('data-file-path', filePath);
+          newChar2.setAttribute('data-state', state);
+          newChar2.setAttribute('data-row', lineNumber);
+          newChar2.setAttribute('data-col', charPos);
+          charPos = charPos + 0.5;
+
+          return [newChar, newChar2];
         });
-        characterNodes.forEach((characterNode) => parent.appendChild(characterNode));
+        characterNodes.forEach((characterNodes) => {
+          const [charNode1, charNode2] = characterNodes;
+          parent.appendChild(charNode1);
+          parent.appendChild(charNode2);
+        });
 
         return [parent, charPos];
       } else {

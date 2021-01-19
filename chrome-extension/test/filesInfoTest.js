@@ -1,4 +1,4 @@
-import { equal } from 'assert';
+const equal = require('chai').assert.equal;
 import { FilesInfo } from '../src/filesInfo.js';
 
 describe('FilesInfo', function() {
@@ -10,7 +10,6 @@ describe('FilesInfo', function() {
           typeRefs: {
             42: [
               {
-                children: [],
                 generalizedType: null,
                 specializedType: 0,
                 span: {
@@ -18,7 +17,20 @@ describe('FilesInfo', function() {
                   lineEnd: 42,
                   colStart: 1,
                   colEnd: 5
-                }
+                },
+                children: [
+                  {
+                    generalizedType: null,
+                    specializedType: 1,
+                    span: {
+                      lineStart: 42,
+                      lineEnd: 42,
+                      colStart: 3,
+                      colEnd: 4
+                    },
+                    children: []
+                  }
+                ]
               }
             ]
           },
@@ -32,13 +44,18 @@ describe('FilesInfo', function() {
     const filesInfo = new FilesInfo(info);
 
     it('returns the typename', function() {
-      const typeName = filesInfo.findType("someFile", 'DELETED', 3, 42);
+      const { typeName } = filesInfo.findType("someFile", 'DELETED', 2, 42);
       equal(typeName, "Int");
     });
 
     it('returns null if location doesn\'t contain a type', function() {
-      const typeName = filesInfo.findType("someFile", 'DELETED', 6, 42);
-      equal(typeName, null);
+      const res = filesInfo.findType("someFile", 'DELETED', 6, 42);
+      equal(res, null);
+    });
+
+    it('returns child if its location is more specific', function() {
+      const { typeName } = filesInfo.findType("someFile", 'DELETED', 3, 42);
+      equal(typeName, "String");
     });
   });
 });

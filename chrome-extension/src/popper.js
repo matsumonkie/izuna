@@ -1,5 +1,8 @@
 import { createPopper } from '@popperjs/core';
 
+/*
+ * create a popper notification and attach it to the correct html dom
+ */
 export class Popper {
 
   constructor(filesInfo) {
@@ -20,11 +23,8 @@ export class Popper {
     this.filesInfo = filesInfo;
   }
 
-  // attach a display notification event on all code span that have type annotations
-  mkNotificationEvents() {
-    let popperInstance = null;
-
-    const tooltipOptions = {
+  tooltipOptions () {
+    return {
       placement: 'top',
       modifiers: [
         {
@@ -35,14 +35,27 @@ export class Popper {
         },
       ],
     };
+  }
 
+  // attach a display notification event on all code span that have type annotations
+  mkNotificationEvents() {
+    let popperInstance = null;
     document.querySelectorAll("span.izuna-char").forEach(span => {
       span.addEventListener("mouseover", event => {
-        popperInstance = createPopper(span, this.tooltip, tooltipOptions);
-        const typeName = this.filesInfo.findType(span.dataset.filePath, span.dataset.state, span.dataset.col, span.dataset.row);
-        if(typeName) {
-          this.tooltip.querySelector('#tooltipText').innerHTML = typeName;
-          this.tooltip.setAttribute('data-show', '');
+        const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.state, span.dataset.col, span.dataset.row);
+        if(typeInfo) {
+          var whichClassToSearch;
+          if(Number.isInteger(typeInfo.centerCol)) {
+            whichClassToSearch = 'izuna-char';
+          } else {
+            whichClassToSearch = 'izuna-fake-char';
+          }
+          const realSpan = document.querySelector(`span.${whichClassToSearch}[data-file-path="${span.dataset.filePath}"][data-row="${span.dataset.row}"][data-col="${typeInfo.centerCol}"]`);
+          if(realSpan) {
+            popperInstance = createPopper(realSpan, this.tooltip, this.tooltipOptions());
+            this.tooltip.querySelector('#tooltipText').innerHTML = typeInfo.typeName;
+            this.tooltip.setAttribute('data-show', '');
+          }
         }
       });
 

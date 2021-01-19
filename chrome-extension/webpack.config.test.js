@@ -1,18 +1,14 @@
 const path = require('path');
 const CleanTerminalPlugin = require('clean-terminal-webpack-plugin');
+const glob = require('glob');
 
 module.exports = {
-  entry: {
-    contentScript: './src/contentScript.js',
-    background: './src/background.js',
-  },
+  entry: glob.sync('./test/*.js'),
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist')
   },
-  plugins: [
-    new CleanTerminalPlugin()
-  ],
+  plugins: [new CleanTerminalPlugin()],
   module: {
     rules: [
       {
@@ -21,7 +17,7 @@ module.exports = {
         loader: 'babel-loader',
         options: {
           presets: ["@babel/preset-env"],
-          plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-runtime"],
+          plugins: ["@babel/plugin-proposal-class-properties"]
         }
       }
     ]
