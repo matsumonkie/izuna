@@ -1,11 +1,12 @@
+import { LineState } from './lineState.js';
+
 /*
  * this service extract parts of the dom for
  * a github pull request page dom (e.g: https://github.com/someUser/someRepo/pull/16/files),
  */
 export class PullRequestPageService {
 
-  constructor() {
-  }
+  constructor() {}
 
   // On the pull request page, we want to fetch the path of all the files with the given extension (e.g: ".hs" for haskell files)
   getFilesWithExtension(extension) {
@@ -14,7 +15,7 @@ export class PullRequestPageService {
       .filter(e => e.endsWith(extension));
   }
 
-  // In your browser page, try to find all the file diffs for Haskell code
+  // In your browser page, try to find all the file diffs for the given extension
   getDiffsForFileWithExtension(extension) {
     const diffDoms = document.querySelectorAll(`div.file[data-file-type='${extension}']`);
     if (diffDoms.length === 0) {
@@ -91,17 +92,17 @@ export class PullRequestPageService {
       return {
         old: {
           lineNumber: oldLineNumber,
-          lineState: this.getLineState(oldLineNumberDom)
+          lineState: LineState.getState(oldLineNumberDom)
         },
         new: {
           lineNumber: newLineNumber,
-          lineState: this.getLineState(newLineNumberDom)
+          lineState: LineState.getState(newLineNumberDom)
         }
       };
     } else { // unified mode
-      const lineState = this.getLineState(oldLineNumberDom);
+      const lineState = LineState.getState(oldLineNumberDom);
       var lineNumber;
-      if (lineState == "DELETED") {
+      if (lineState == LineState.DELETED) {
         lineNumber = oldLineNumber;
       } else {
         lineNumber = newLineNumber;
@@ -111,17 +112,6 @@ export class PullRequestPageService {
         lineNumber: lineNumber,
         lineState: lineState
       };
-    }
-  }
-
-  getLineState(lineDom) {
-    const classList = lineDom.classList
-    if(classList.contains("blob-num-addition")) {
-      return "ADDED";
-    } else if (classList.contains("blob-num-deletion")) {
-      return "DELETED";
-    } else {
-      return "UNMODIFIED";
     }
   }
 

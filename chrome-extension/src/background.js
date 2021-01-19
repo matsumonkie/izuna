@@ -1,4 +1,5 @@
 import { IzunaServerService } from './izunaServerService.js';
+import { Constants } from './constants.js';
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ enableIzuna: true });
@@ -24,9 +25,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         const izunaServerService = new IzunaServerService(izunaServerUrl, pullRequestInfo);
 
         izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-          chrome.tabs.sendMessage(tab.id, { cmd: 'whichFiles' }, (files) => {
+          chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
             izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
-              chrome.tabs.sendMessage(tab.id, payload, (response) => {});
+              chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, (response) => {});
             });
           });
         });

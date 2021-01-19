@@ -2,19 +2,23 @@ import { Splitter } from './splitter.js';
 import { Popper } from './popper.js';
 import { FilesInfo } from './filesInfo.js';
 import { PullRequestPageService } from './pullRequestPageService.js';
+import { Constants } from './constants.js';
+import { LineState } from './lineState.js';
 
-chrome.runtime.onMessage.addListener((payload, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const pullRequestPage = new PullRequestPageService(document);
-  if(payload.cmd === 'whichFiles') {
+  if(msg.cmd === Constants.CMD_WHICH_FILES) {
     sendResponse(pullRequestPage.getFilesWithExtension(".hs"));
-  } else {
-    console.debug(payload)
-    main(payload, pullRequestPage);
+  } else if(msg.cmd === Constants.CMD_IZUNA_INFO) {
+    main(msg.payload, pullRequestPage);
     sendResponse({});
+  } else {
+    console.error(`izuna: Unknown command of from background received in contentScript: ${msg}`);
   }
 });
 
 function main (payload, pullRequestPage) {
+  console.debug(payload)
   try {
     const diffDoms = pullRequestPage.getDiffsForFileWithExtension(".hs");
     const splitter = new Splitter(document, Node);
@@ -57,7 +61,7 @@ function generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, 
         //generateElmAppForRow(filePath, codeNode.newCodeNode, line.new.lineState, newModuleInfo, line.new.lineNumber);
       } else { // unified mode, we only need to handle 1 row
         var whichModuleInfo;
-        if(line.lineState === "ADDED") {
+        if(line.lineState === LineState.ADDED) {
           whichModuleInfo = newModuleInfo;
         } else {
           whichModuleInfo = oldModuleInfo;
@@ -73,28 +77,6 @@ function handleCodeRow(splitter, filePath, parentNode, codeNode, lineState, whic
   const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, lineState, lineNumber);
   parentNode.replaceChild(newCodeNode, codeNode);
 }
-
-//  make an elm application for a given row that will handle the display
-/*function generateRow(filePath, moduleInfo, splitMode, diffRowDom) {
-  const line = getLineNumberStates(diffRowDom, splitMode)
-  const codeNode = getCodeNode(diffRowDom, splitMode);
-  const oldModuleInfo = moduleInfo.oldModuleInfo;
-  const newModuleInfo = moduleInfo.newModuleInfo;
-
-  if(splitMode) { // split mode, we need to generate 2 new rows, one for the old diff and one for the new diff
-  generateElmAppForRow(filePath, codeNode.oldCodeNode, line.old.lineState, oldModuleInfo, line.old.lineNumber);
-  generateElmAppForRow(filePath, codeNode.newCodeNode, line.new.lineState, newModuleInfo, line.new.lineNumber);
-  } else { // unified mode, we only need to generate 1 new row
-  if(line.lineState === "ADDED") {
-  whichModuleInfo = newModuleInfo;
-  } else {
-  whichModuleInfo = oldModuleInfo;
-  }
-
-  generateElmAppForRow(filePath, codeNode.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
-  }
-  }*/
-
 
 /*
  * on github, only the modified part of a file gets shown. If the user wants to see more, he can click on the expand button.
