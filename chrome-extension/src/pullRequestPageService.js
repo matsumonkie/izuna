@@ -115,7 +115,55 @@ export class PullRequestPageService {
     }
   }
 
-  getCodeRow(diffRowDom, splitMode) {
+  static codeRowClasses = ['blob-code-inner', 'blob-code-marker']
+
+  /*
+   * Not all diff rows have the same html structure. This function makes sure every row are "normalized"
+   */
+  normalizeDiff(diffRowsDom) {
+    return Array.from(diffRowsDom).map (diffRowDom => {
+      const lineRow = this.getLineRow(diffRowDom);
+      if(lineRow) {
+        var [ oldCodeNode, newCodeNode ] = this.getCodeRow(lineRow);
+        // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
+        if(! oldCodeNode) {
+          oldCodeNode = document.createElement("span");
+          oldCodeNode.classList.add(...PullRequestPageService.codeRowClasses);
+          while(lineRow.firstChild) {
+            const child = lineRow.firstChild;
+            oldCodeNode.appendChild(lineRow.removeChild(child));
+          }
+          lineRow.appendChild(oldCodeNode);
+        }
+      }
+
+      return diffRowDom;
+    });
+  }
+
+  /*
+   * contain the code row and line state (addition, deletion, unmodified)
+   * eg:
+   *
+   *    | 8 | + someCode
+   *          ‾‾‾‾‾‾‾‾‾‾
+   */
+  getLineRow(diffRowDom) {
+    return diffRowDom.querySelector('td:not(:empty)');
+  }
+
+  /*
+   * contain the code row and line state (addition, deletion, unmodified)
+   * eg:
+   *
+   *    | 8 | + someCode
+   *            ‾‾‾‾‾‾‾‾
+   */
+  getCodeRow(lineRow) {
+    return lineRow.querySelectorAll(`span.${PullRequestPageService.codeRowClasses.join('.')}`);
+  }
+
+  getCodeRowForMode(diffRowDom, splitMode) {
     /*
      * in split mode oldCodeNode and newCodeNode represents
      * respectively the code line from the left and the right, i.e:
@@ -132,19 +180,23 @@ export class PullRequestPageService {
      * | 8 |   | - someOldCode...
      *
      */
-    const parentNode = diffRowDom.querySelector('td:not(:empty)');
-    const [ oldCodeNode, newCodeNode ] = diffRowDom.querySelectorAll('span.blob-code-inner.blob-code-marker');
-    if(splitMode) {
-      return {
-        parentNode: parentNode,
-        oldCodeNode: oldCodeNode,
-        newCodeNode: newCodeNode
-      };
+    const lineRow = this.getLineRow(diffRowDom)
+    if(!lineRow) {
+      return null
     } else {
-      return {
-        parentNode: parentNode,
-        codeNode: oldCodeNode
-      };
+      const [ oldCodeNode, newCodeNode ] = this.getCodeRow(lineRow);
+      if(splitMode) {
+        return {
+          parentNode: lineRow,
+          oldCodeNode: oldCodeNode,
+          newCodeNode: newCodeNode
+        };
+      } else {
+        return {
+          parentNode: lineRow,
+          codeNode: oldCodeNode
+        };
+      }
     }
   }
 }

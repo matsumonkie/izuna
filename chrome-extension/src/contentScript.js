@@ -22,6 +22,8 @@ function main (payload, pullRequestPage) {
   try {
     const diffDoms = pullRequestPage.getDiffsForFileWithExtension(".hs");
     const splitter = new Splitter(document, Node);
+    const filesInfo = new FilesInfo(payload);
+    const popper = new Popper(filesInfo);
     diffDoms.forEach(diffDom => {
       const splitMode = pullRequestPage.isSplitMode(diffDom);
       const filePath = pullRequestPage.getFilePath(diffDom);
@@ -29,9 +31,10 @@ function main (payload, pullRequestPage) {
         oldModuleInfo: payload.oldPackageInfo[filePath],
         newModuleInfo: payload.newPackageInfo[filePath]
       };
-      generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo);
-      watchDiffForCodeExpansion(pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo);
+      generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
+      watchDiffForCodeExpansion(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
     });
+    document.body.appendChild(popper.tooltip);
   } catch (error) {
     const message = `izuna: Fatal error occurred, izuna will stop working on this page
 Try reloading your page
@@ -40,36 +43,34 @@ Error is: ` + error;
     console.error(message);
     return;
   }
-
-  const filesInfo = new FilesInfo(payload);
-  const popper = new Popper(filesInfo);
-  document.body.appendChild(popper.tooltip);
-  popper.mkNotificationEvents()
 }
 
-function generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo) {
+function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo) {
   if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
-    const diffRowsDom = pullRequestPage.getRows(filePath, diffDom);
+    var diffRowsDom = pullRequestPage.getRows(filePath, diffDom);
+    diffRowsDom = pullRequestPage.normalizeDiff(diffRowsDom);
     Array.from(diffRowsDom).forEach (diffRowDom => {
       const line = pullRequestPage.getLineNumberState(diffRowDom, splitMode);
-      const codeRow = pullRequestPage.getCodeRow(diffRowDom, splitMode);
-      const oldModuleInfo = moduleInfo.oldModuleInfo;
-      const newModuleInfo = moduleInfo.newModuleInfo;
+      const codeRow = pullRequestPage.getCodeRowForMode(diffRowDom, splitMode);
+      if(codeRow) {
+        const oldModuleInfo = moduleInfo.oldModuleInfo;
+        const newModuleInfo = moduleInfo.newModuleInfo;
 
-      if(splitMode) { // split mode, we need to handle 2 rows, one for the old diff and one for the new diff
-        //generateElmAppForRow(filePath, codeNode.oldCodeNode, line.old.lineState, oldModuleInfo, line.old.lineNumber);
-        //generateElmAppForRow(filePath, codeNode.newCodeNode, line.new.lineState, newModuleInfo, line.new.lineNumber);
-      } else { // unified mode, we only need to handle 1 row
-        var whichModuleInfo;
-        if(line.lineState === LineState.ADDED) {
-          whichModuleInfo = newModuleInfo;
-        } else {
-          whichModuleInfo = oldModuleInfo;
+        if(splitMode) { // split mode, we need to handle 2 rows, one for the old diff and one for the new diff
+          //generateElmAppForRow(filePath, codeNode.oldCodeNode, line.old.lineState, oldModuleInfo, line.old.lineNumber);
+          //generateElmAppForRow(filePath, codeNode.newCodeNode, line.new.lineState, newModuleInfo, line.new.lineNumber);
+        } else { // unified mode, we only need to handle 1 row
+          var whichModuleInfo;
+          if(line.lineState === LineState.ADDED) {
+            whichModuleInfo = newModuleInfo;
+          } else {
+            whichModuleInfo = oldModuleInfo;
+          }
+          handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
         }
-        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
       }
-
     });
+    popper.mkNotificationEvents(diffDom);
   }
 }
 
@@ -82,14 +83,14 @@ function handleCodeRow(splitter, filePath, parentNode, codeNode, lineState, whic
  * on github, only the modified part of a file gets shown. If the user wants to see more, he can click on the expand button.
  * We watch the whole diff file and anytime child nodes are being added, we re-run izuna on the whole file
  */
-function watchDiffForCodeExpansion (pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo) {
+function watchDiffForCodeExpansion (pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo) {
   const codeDiffDom = diffDom.querySelector('table.diff-table tbody');
   const config = { attributes: false, childList: true, subtree: false };
 
   const callback = function(mutationsList, observer) {
     mutationsList.forEach (mutation => {
       if (mutation.type === 'childList') {
-        generateIzuna(pullRequestPage, splitter, diffDom, splitMode, filePath, moduleInfo);
+        generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
       }
     });
   };

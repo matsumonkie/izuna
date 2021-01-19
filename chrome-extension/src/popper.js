@@ -39,9 +39,9 @@ export class Popper {
   }
 
   // attach a display notification event on all code span that have type annotations
-  mkNotificationEvents() {
+  mkNotificationEvents(diffDom) {
     let popperInstance = null;
-    document.querySelectorAll(`span.${Splitter.REAL_SPAN}`).forEach(span => {
+    diffDom.querySelectorAll(`span.${Splitter.REAL_SPAN}`).forEach(span => {
       span.addEventListener("mouseover", event => {
         const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.state, span.dataset.col, span.dataset.row);
         if(typeInfo) {
@@ -51,7 +51,7 @@ export class Popper {
           } else {
             whichClassToSearch = Splitter.FAKE_SPAN;
           }
-          const realSpan = document.querySelector(`span.${whichClassToSearch}[data-file-path="${span.dataset.filePath}"][data-row="${span.dataset.row}"][data-col="${typeInfo.centerCol}"]`);
+          const realSpan = diffDom.querySelector(`span.${whichClassToSearch}[data-file-path="${span.dataset.filePath}"][data-row="${span.dataset.row}"][data-col="${typeInfo.centerCol}"]`);
           if(realSpan) {
             popperInstance = createPopper(realSpan, this.tooltip, this.tooltipOptions());
             this.tooltip.querySelector('#tooltipText').innerHTML = typeInfo.typeName;
