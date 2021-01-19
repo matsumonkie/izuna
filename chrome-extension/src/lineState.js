@@ -1,7 +1,6 @@
 export class LineState {
 
-  constructor() {
-  }
+  constructor() {}
 
   static getState(lineDom) {
     const classList = lineDom.classList

@@ -1,4 +1,5 @@
 import { createPopper } from '@popperjs/core';
+import { Splitter } from './splitter.js';
 
 /*
  * create a popper notification and attach it to the correct html dom
@@ -40,15 +41,15 @@ export class Popper {
   // attach a display notification event on all code span that have type annotations
   mkNotificationEvents() {
     let popperInstance = null;
-    document.querySelectorAll("span.izuna-char").forEach(span => {
+    document.querySelectorAll(`span.${Splitter.REAL_SPAN}`).forEach(span => {
       span.addEventListener("mouseover", event => {
         const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.state, span.dataset.col, span.dataset.row);
         if(typeInfo) {
           var whichClassToSearch;
           if(Number.isInteger(typeInfo.centerCol)) {
-            whichClassToSearch = 'izuna-char';
+            whichClassToSearch = Splitter.REAL_SPAN;
           } else {
-            whichClassToSearch = 'izuna-fake-char';
+            whichClassToSearch = Splitter.FAKE_SPAN;
           }
           const realSpan = document.querySelector(`span.${whichClassToSearch}[data-file-path="${span.dataset.filePath}"][data-row="${span.dataset.row}"][data-col="${typeInfo.centerCol}"]`);
           if(realSpan) {

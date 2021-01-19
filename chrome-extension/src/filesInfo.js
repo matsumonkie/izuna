@@ -1,3 +1,5 @@
+import { LineState } from './lineState.js';
+
 export class FilesInfo {
 
   constructor(filesInfo) {
@@ -6,7 +8,7 @@ export class FilesInfo {
 
   findType(filePath, state, col, row) {
     var fileState;
-    if(state === 'ADDED') {
+    if(state === LineState.ADDED) {
       fileState = this.filesInfo.newPackageInfo;
     } else {
       fileState = this.filesInfo.oldPackageInfo;

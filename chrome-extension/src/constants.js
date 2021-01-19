@@ -1,7 +1,6 @@
 export class Constants {
 
-  constructor() {
-  }
+  constructor() {}
 
   static CMD_WHICH_FILES = 'WHICH_FILES';
   static CMD_IZUNA_INFO = 'IZUNA_INFO';
