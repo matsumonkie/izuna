@@ -45,13 +45,12 @@ export class Popper {
       span.addEventListener("mouseover", event => {
         const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.state, span.dataset.col, span.dataset.row);
         if(typeInfo) {
-          var whichClassToSearch;
-          if(Number.isInteger(typeInfo.centerCol)) {
-            whichClassToSearch = Splitter.REAL_SPAN;
-          } else {
-            whichClassToSearch = Splitter.FAKE_SPAN;
-          }
-          const realSpan = diffDom.querySelector(`span.${whichClassToSearch}[data-file-path="${span.dataset.filePath}"][data-row="${span.dataset.row}"][data-col="${typeInfo.centerCol}"]`);
+          const classAttr = Number.isInteger(typeInfo.centerCol) ? Splitter.REAL_SPAN : Splitter.FAKE_SPAN;
+          const filePathAttr = `[data-file-path="${span.dataset.filePath}"]`;
+          const rowAttr = `[data-row="${span.dataset.row}"]`;
+          const colAttr = `[data-col="${typeInfo.centerCol}"]`;
+          const stateAttr = `[data-state="${span.dataset.state}"]`;
+          const realSpan = diffDom.querySelector(`span.${classAttr}${filePathAttr}${rowAttr}${colAttr}${stateAttr}`);
           if(realSpan) {
             popperInstance = createPopper(realSpan, this.tooltip, this.tooltipOptions());
             this.tooltip.querySelector('#tooltipText').innerHTML = typeInfo.typeName;

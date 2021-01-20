@@ -8,6 +8,8 @@ export class PullRequestPageService {
 
   constructor() {}
 
+  static codeRowClasses = ['blob-code-inner', 'blob-code-marker']
+
   // On the pull request page, we want to fetch the path of all the files with the given extension (e.g: ".hs" for haskell files)
   getFilesWithExtension(extension) {
     return Array.from(document.querySelectorAll("div.file-header div.file-info a"))
@@ -63,17 +65,8 @@ export class PullRequestPageService {
     return diffRowsDom;
   }
 
-  // for a given row, return both old/new line number and the line state (addition, deletion, unmodified)
-  getLineNumberState(diffRowDom, splitMode) {
+  getLineNumberForUnifiedMode(diffRowDom) {
     /*
-     * in split mode oldLineNumberDom and newLineNumberDom represents
-     * respectively the line number from the left and the right, i.e:
-     *
-     *   oldLineNumberDom        newLineNumberDom
-     *   ↓                       ↓
-     * | 8 | - someOldCode...  | 8 | + someNewCode...
-     *
-     *
      * this is similar for the unified mode except that graphically, the number are side to side, i.e:
      *
      *   oldLineNumberDom
@@ -87,55 +80,66 @@ export class PullRequestPageService {
 
     const oldLineNumber = parseInt(oldLineNumberDom.dataset.lineNumber) - 1;
     const newLineNumber = parseInt(newLineNumberDom.dataset.lineNumber) - 1;
-
-    if (splitMode) {
-      return {
-        old: {
-          lineNumber: oldLineNumber,
-          lineState: LineState.getState(oldLineNumberDom)
-        },
-        new: {
-          lineNumber: newLineNumber,
-          lineState: LineState.getState(newLineNumberDom)
-        }
-      };
-    } else { // unified mode
-      const lineState = LineState.getState(oldLineNumberDom);
-      var lineNumber;
-      if (lineState == LineState.DELETED) {
-        lineNumber = oldLineNumber;
-      } else {
-        lineNumber = newLineNumber;
-      }
-
-      return {
-        lineNumber: lineNumber,
-        lineState: lineState
-      };
+    const lineState = LineState.getState(oldLineNumberDom);
+    var lineNumber;
+    if (lineState == LineState.DELETED) {
+      lineNumber = oldLineNumber;
+    } else {
+      lineNumber = newLineNumber;
     }
+
+    return {
+      lineNumber: lineNumber,
+      lineState: lineState
+    };
   }
 
-  static codeRowClasses = ['blob-code-inner', 'blob-code-marker']
+  getLineNumberForSplitMode(diffRowDom) {
+    /*
+     * in split mode oldLineNumberDom and newLineNumberDom represents
+     * respectively the line number from the left and the right, i.e:
+     *
+     *   oldLineNumberDom        newLineNumberDom
+     *   ↓                       ↓
+     * | 8 | - someOldCode...  | 8 | + someNewCode...
+     */
+    const [ leftLine, rightLine ] = Array.from(diffRowDom.querySelectorAll('td.blob-num')).map(dom => {
+      return {
+        lineNumber: parseInt(dom.dataset.lineNumber) - 1,
+        lineState: LineState.getState(dom)
+      }
+    });
+
+    return {
+      leftLine: leftLine,
+      rightLine: rightLine
+    }
+  }
 
   /*
    * Not all diff rows have the same html structure. This function makes sure every row are "normalized"
    */
-  normalizeDiff(diffRowsDom) {
+  normalizeDiff(diffRowsDom, splitMode) {
     return Array.from(diffRowsDom).map (diffRowDom => {
-      const lineRow = this.getLineRow(diffRowDom);
-      if(lineRow) {
-        var [ oldCodeNode, newCodeNode ] = this.getCodeRow(lineRow);
+      var lineRows;
+      if (splitMode) {
+        lineRows = Array.from(this.getLineRowForSplitMode(diffRowDom));
+      } else {
+        lineRows = Array.from([ this.getLineRowForUnifiedMode(diffRowDom) ]);
+      }
+      lineRows.forEach (lineRow => {
+        var codeRow = this.getCodeRow(lineRow);
         // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
-        if(! oldCodeNode) {
-          oldCodeNode = document.createElement("span");
-          oldCodeNode.classList.add(...PullRequestPageService.codeRowClasses);
+        if(! codeRow) {
+          codeRow = document.createElement("span");
+          codeRow.classList.add(...PullRequestPageService.codeRowClasses);
           while(lineRow.firstChild) {
             const child = lineRow.firstChild;
-            oldCodeNode.appendChild(lineRow.removeChild(child));
+            codeRow.appendChild(lineRow.removeChild(child));
           }
-          lineRow.appendChild(oldCodeNode);
+          lineRow.appendChild(codeRow);
         }
-      }
+      })
 
       return diffRowDom;
     });
@@ -148,8 +152,24 @@ export class PullRequestPageService {
    *    | 8 | + someCode
    *          ‾‾‾‾‾‾‾‾‾‾
    */
-  getLineRow(diffRowDom) {
-    return diffRowDom.querySelector('td:not(:empty)');
+  getLineRowForUnifiedMode(diffRowDom) {
+    return diffRowDom.querySelector('td.blob-code:not(:empty)');
+  }
+
+  /*
+   * contain the code row and line state (addition, deletion, unmodified)
+   * eg:
+   *
+   *    | 8 | unmodifiedCode     | 8 | unmodifiedCode
+   *          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   * caveat: sometimes one of the column is empty
+   * eg:
+   *    |   |                    | 8 | unmodifiedCode
+   *
+   *
+   */
+  getLineRowForSplitMode(diffRowDom) {
+    return diffRowDom.querySelectorAll('td.blob-code');
   }
 
   /*
@@ -160,43 +180,48 @@ export class PullRequestPageService {
    *            ‾‾‾‾‾‾‾‾
    */
   getCodeRow(lineRow) {
-    return lineRow.querySelectorAll(`span.${PullRequestPageService.codeRowClasses.join('.')}`);
+    return lineRow.querySelector(`span.${PullRequestPageService.codeRowClasses.join('.')}`);
   }
 
-  getCodeRowForMode(diffRowDom, splitMode) {
-    /*
-     * in split mode oldCodeNode and newCodeNode represents
-     * respectively the code line from the left and the right, i.e:
-     *
-     *         oldCodeNode             newCodeNode
-     *         ↓                       ↓
-     * | 8 | - someOldCode...  | 8 | + someNewCode...
-     *
-     *
-     * for the unified mode, there is only one line of code per row, so newCodeNode will be undefined
-     *
-     *             oldCodeNode
-     *             ↓
-     * | 8 |   | - someOldCode...
-     *
-     */
-    const lineRow = this.getLineRow(diffRowDom)
+  /*
+   * for the unified mode, there is only one line of code per row, so newCodeNode will be undefined
+   *
+   *             oldCodeNode
+   *             ↓
+   * | 8 |   | - someOldCode...
+   */
+  getCodeRowForUnifiedMode(diffRowDom) {
+    const lineRow = this.getLineRowForUnifiedMode(diffRowDom)
     if(!lineRow) {
       return null
     } else {
-      const [ oldCodeNode, newCodeNode ] = this.getCodeRow(lineRow);
-      if(splitMode) {
-        return {
-          parentNode: lineRow,
-          oldCodeNode: oldCodeNode,
-          newCodeNode: newCodeNode
-        };
-      } else {
-        return {
-          parentNode: lineRow,
-          codeNode: oldCodeNode
-        };
-      }
+      return {
+        parentNode: lineRow,
+        codeNode: this.getCodeRow(lineRow)
+      };
     }
+  }
+
+  /*
+   * in split mode oldCodeNode and newCodeNode represents
+   * respectively the code line from the left and the right, i.e:
+   *
+   *         leftCodeNode            rightCodeNode
+   *         ↓                       ↓
+   * | 8 | - someOldCode...  | 8 | + someNewCode...
+   *
+   */
+  getCodeRowsForSplitMode(diffRowDom) {
+    const [ leftLineRow, rightLineRow ] = Array.from(this.getLineRowForSplitMode(diffRowDom)).map(lineRow => {
+      return {
+        parentNode: lineRow,
+        codeNode: this.getCodeRow(lineRow)
+      }
+    });
+
+    return {
+      leftLineRow: leftLineRow,
+      rightLineRow: rightLineRow
+    };
   }
 }

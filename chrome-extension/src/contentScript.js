@@ -48,26 +48,29 @@ Error is: ` + error;
 function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo) {
   if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
     var diffRowsDom = pullRequestPage.getRows(filePath, diffDom);
-    diffRowsDom = pullRequestPage.normalizeDiff(diffRowsDom);
+    diffRowsDom = pullRequestPage.normalizeDiff(diffRowsDom, splitMode);
     Array.from(diffRowsDom).forEach (diffRowDom => {
-      const line = pullRequestPage.getLineNumberState(diffRowDom, splitMode);
-      const codeRow = pullRequestPage.getCodeRowForMode(diffRowDom, splitMode);
-      if(codeRow) {
-        const oldModuleInfo = moduleInfo.oldModuleInfo;
-        const newModuleInfo = moduleInfo.newModuleInfo;
+      console.log("newLine");
+      const oldModuleInfo = moduleInfo.oldModuleInfo;
+      const newModuleInfo = moduleInfo.newModuleInfo;
 
-        if(splitMode) { // split mode, we need to handle 2 rows, one for the old diff and one for the new diff
-          //generateElmAppForRow(filePath, codeNode.oldCodeNode, line.old.lineState, oldModuleInfo, line.old.lineNumber);
-          //generateElmAppForRow(filePath, codeNode.newCodeNode, line.new.lineState, newModuleInfo, line.new.lineNumber);
-        } else { // unified mode, we only need to handle 1 row
-          var whichModuleInfo;
-          if(line.lineState === LineState.ADDED) {
-            whichModuleInfo = newModuleInfo;
-          } else {
-            whichModuleInfo = oldModuleInfo;
-          }
-          handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
+      if(splitMode) { // split mode, we need to handle 2 rows, one for the old diff and one for the new diff
+        const line = pullRequestPage.getLineNumberForSplitMode(diffRowDom);
+        const codeRows = pullRequestPage.getCodeRowsForSplitMode(diffRowDom);
+
+        handleCodeRow(splitter, filePath, codeRows.leftLineRow.parentNode, codeRows.leftLineRow.codeNode, line.leftLine.lineState, oldModuleInfo, line.leftLine.lineNumber);
+        handleCodeRow(splitter, filePath, codeRows.rightLineRow.parentNode, codeRows.rightLineRow.codeNode, line.rightLine.lineState, newModuleInfo, line.rightLine.lineNumber);
+      } else { // unified mode, we only need to handle 1 row
+        const line = pullRequestPage.getLineNumberForUnifiedMode(diffRowDom);
+        const codeRow = pullRequestPage.getCodeRowForUnifiedMode(diffRowDom);
+
+        var whichModuleInfo;
+        if(line.lineState === LineState.ADDED) {
+          whichModuleInfo = newModuleInfo;
+        } else {
+          whichModuleInfo = oldModuleInfo;
         }
+        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
       }
     });
     popper.mkNotificationEvents(diffDom);
@@ -75,8 +78,14 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
 }
 
 function handleCodeRow(splitter, filePath, parentNode, codeNode, lineState, whichModuleInfo, lineNumber) {
-  const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, lineState, lineNumber);
-  parentNode.replaceChild(newCodeNode, codeNode);
+  console.log(`line: ${lineNumber}`);
+  if(codeNode && lineNumber) {
+    console.log("parent and old child", parentNode, codeNode);
+    const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, lineState, lineNumber);
+    console.log("splitted");
+    parentNode.replaceChild(newCodeNode, codeNode);
+    console.log("child replaced");
+  }
 }
 
 /*

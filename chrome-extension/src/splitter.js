@@ -81,7 +81,6 @@ export class Splitter {
         return [node, charPos];
       }
     }
-
     var [newNode, _] = buildSpans(dom.cloneNode(true), 0);
     docFragment.appendChild(newNode);
 
