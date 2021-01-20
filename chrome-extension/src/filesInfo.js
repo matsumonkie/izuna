@@ -8,7 +8,7 @@ export class FilesInfo {
 
   findType(filePath, state, col, row) {
     var fileState;
-    if(state === LineState.ADDED) {
+    if(state === LineState.ADDED || state === LineState.UNMODIFIED) {
       fileState = this.filesInfo.newPackageInfo;
     } else {
       fileState = this.filesInfo.oldPackageInfo;
@@ -24,6 +24,8 @@ export class FilesInfo {
             const spanLength = typeRef.span.colEnd - 1 - typeRef.span.colStart;
             const centerCol = (typeRef.span.colEnd - 1) - (spanLength / 2);
             return {
+              startCol: typeRef.span.colStart,
+              endCol: typeRef.span.colEnd - 1,
               centerCol: centerCol,
               typeName: specializedType.replace(/ -> /g, " ⟶ ")
             }

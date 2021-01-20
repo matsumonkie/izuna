@@ -50,7 +50,6 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
     var diffRowsDom = pullRequestPage.getRows(filePath, diffDom);
     diffRowsDom = pullRequestPage.normalizeDiff(diffRowsDom, splitMode);
     Array.from(diffRowsDom).forEach (diffRowDom => {
-      console.log("newLine");
       const oldModuleInfo = moduleInfo.oldModuleInfo;
       const newModuleInfo = moduleInfo.newModuleInfo;
 
@@ -58,8 +57,8 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
         const line = pullRequestPage.getLineNumberForSplitMode(diffRowDom);
         const codeRows = pullRequestPage.getCodeRowsForSplitMode(diffRowDom);
 
-        handleCodeRow(splitter, filePath, codeRows.leftLineRow.parentNode, codeRows.leftLineRow.codeNode, line.leftLine.lineState, oldModuleInfo, line.leftLine.lineNumber);
-        handleCodeRow(splitter, filePath, codeRows.rightLineRow.parentNode, codeRows.rightLineRow.codeNode, line.rightLine.lineState, newModuleInfo, line.rightLine.lineNumber);
+        handleCodeRow(splitter, filePath, codeRows.leftLineRow.parentNode, codeRows.leftLineRow.codeNode, Constants.LEFT_LOCATION, line.leftLine.lineState, oldModuleInfo, line.leftLine.lineNumber);
+        handleCodeRow(splitter, filePath, codeRows.rightLineRow.parentNode, codeRows.rightLineRow.codeNode, Constants.RIGHT_LOCATION, line.rightLine.lineState, newModuleInfo, line.rightLine.lineNumber);
       } else { // unified mode, we only need to handle 1 row
         const line = pullRequestPage.getLineNumberForUnifiedMode(diffRowDom);
         const codeRow = pullRequestPage.getCodeRowForUnifiedMode(diffRowDom);
@@ -70,21 +69,17 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
         } else {
           whichModuleInfo = oldModuleInfo;
         }
-        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, line.lineState, whichModuleInfo, line.lineNumber);
+        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, Constants.CENTER_LOCATION, line.lineState, whichModuleInfo, line.lineNumber);
       }
     });
     popper.mkNotificationEvents(diffDom);
   }
 }
 
-function handleCodeRow(splitter, filePath, parentNode, codeNode, lineState, whichModuleInfo, lineNumber) {
-  console.log(`line: ${lineNumber}`);
+function handleCodeRow(splitter, filePath, parentNode, codeNode, location, lineState, whichModuleInfo, lineNumber) {
   if(codeNode && lineNumber) {
-    console.log("parent and old child", parentNode, codeNode);
-    const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, lineState, lineNumber);
-    console.log("splitted");
+    const newCodeNode = splitter.split(new DocumentFragment(), codeNode, filePath, location, lineState, lineNumber);
     parentNode.replaceChild(newCodeNode, codeNode);
-    console.log("child replaced");
   }
 }
 

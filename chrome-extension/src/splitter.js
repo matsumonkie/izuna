@@ -39,10 +39,11 @@ export class Splitter {
   static REAL_SPAN = 'izuna-char';
   static FAKE_SPAN = 'izuna-fake-char';
 
-  createSpan(spanType, filePath, lineState, lineNumber, columnNumber, textContent) {
+  createSpan(spanType, filePath, location, lineState, lineNumber, columnNumber, textContent) {
     var newChar = this.document.createElement("span");
     newChar.setAttribute('class', spanType);
     newChar.setAttribute('data-file-path', filePath);
+    newChar.setAttribute('data-location', location);
     newChar.setAttribute('data-state', lineState);
     newChar.setAttribute('data-row', lineNumber);
     newChar.setAttribute('data-col', columnNumber);
@@ -52,14 +53,14 @@ export class Splitter {
     return newChar;
   }
 
-  split(docFragment, dom, filePath, lineState, lineNumber) {
+  split(docFragment, dom, filePath, location, lineState, lineNumber) {
     const buildSpans = (node, charPos) => {
       if(node.nodeType === this.Node.TEXT_NODE) {
         var parent = this.document.createElement("span");
         const characterNodes = Array.from(node.textContent).map((character) => {
-          const realSpan = this.createSpan(Splitter.REAL_SPAN, filePath, lineState, lineNumber, charPos, character);
+          const realSpan = this.createSpan(Splitter.REAL_SPAN, filePath, location, lineState, lineNumber, charPos, character);
           charPos = charPos + 0.5;
-          const fakeSpan = this.createSpan(Splitter.FAKE_SPAN, filePath, lineState, lineNumber, charPos, null);
+          const fakeSpan = this.createSpan(Splitter.FAKE_SPAN, filePath, location, lineState, lineNumber, charPos, null);
           charPos = charPos + 0.5;
           return [realSpan, fakeSpan];
         });
