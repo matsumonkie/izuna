@@ -21,8 +21,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if(result.enableIzuna) {
       const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
       if(pullRequestInfo) {
-        const izunaServerUrl = 'https://izuna.app';
-        const izunaServerService = new IzunaServerService(izunaServerUrl, pullRequestInfo);
+        const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
 
         izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
           chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
