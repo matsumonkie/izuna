@@ -6,4 +6,6 @@ export class Constants {
   static CMD_IZUNA_INFO = 'IZUNA_INFO';
 
   static IZUNA_HOST_URL = 'https://izuna.app';
+
+  static ENABLE_IZUNA_KEY = 'IZUNA';
 }

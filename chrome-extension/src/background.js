@@ -2,7 +2,9 @@ import { IzunaServerService } from './izunaServerService.js';
 import { Constants } from './constants.js';
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.sync.set({ enableIzuna: true });
+  var keyValue = {};
+  keyValue[Constants.ENABLE_IZUNA_KEY] = true;
+  chrome.storage.sync.set(keyValue);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -17,8 +19,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }]);
   });
 
-  chrome.storage.sync.get('enableIzuna', function(result) {
-    if(result.enableIzuna) {
+  chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, function(result) {
+    if(result[Constants.ENABLE_IZUNA_KEY]) {
       const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
       if(pullRequestInfo) {
         const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);

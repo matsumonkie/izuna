@@ -23,7 +23,6 @@ export class IzunaServerService {
    * and the latest commit oid (i.e: the latest commit we pushed for this PR)
    */
   fetchPullRequestCommitsDetails() {
-    console.log(this.getPrDetailsUrl);
     return fetch(this.getPrDetailsUrl())
       .then(response => {
         if(response.ok) {
