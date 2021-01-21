@@ -1,5 +1,5 @@
 import { Constants } from './constants.js';
-import { LineState } from './lineState.js';
+import { NumBlob } from './numBlob.js';
 
 export class FilesInfo {
 
@@ -14,7 +14,7 @@ export class FilesInfo {
     } else if (location === Constants.RIGHT_LOCATION) {
       fileState = this.filesInfo.newPackageInfo;
     } else { // CENTER
-      if(state === LineState.DELETED) {
+      if(state === NumBlob.DELETED) {
         fileState = this.filesInfo.oldPackageInfo;
       } else {
         fileState = this.filesInfo.newPackageInfo;

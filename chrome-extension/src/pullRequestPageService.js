@@ -1,4 +1,4 @@
-import { LineState } from './lineState.js';
+import { NumBlob } from './numBlob.js';
 
 /*
  * this service extract parts of the dom for
@@ -64,57 +64,6 @@ export class PullRequestPageService {
       console.warn(`izuna: Could not find any diff rows for ${filePath}, this will not affect izuna but is probably an error!`);
     }
     return diffRowsDom;
-  }
-
-  getLineNumberForUnifiedMode(diffRowDom) {
-    /*
-     * this is similar for the unified mode except that graphically, the number are side to side, i.e:
-     *
-     *   oldLineNumberDom
-     *       newLineNumberDom
-     *   ↓   ↓
-     * | 8 |   | - someOldCode...
-     * |   | 8 | - someNewCode...
-     *
-     */
-    const [ oldLineNumberDom, newLineNumberDom ] = diffRowDom.querySelectorAll('td.blob-num');
-
-    const oldLineNumber = parseInt(oldLineNumberDom.dataset.lineNumber) - 1;
-    const newLineNumber = parseInt(newLineNumberDom.dataset.lineNumber) - 1;
-    const lineState = LineState.getState(oldLineNumberDom);
-    var lineNumber;
-    if (lineState == LineState.DELETED) {
-      lineNumber = oldLineNumber;
-    } else {
-      lineNumber = newLineNumber;
-    }
-
-    return {
-      lineNumber: lineNumber,
-      lineState: lineState
-    };
-  }
-
-  getLineNumberForSplitMode(diffRowDom) {
-    /*
-     * in split mode oldLineNumberDom and newLineNumberDom represents
-     * respectively the line number from the left and the right, i.e:
-     *
-     *   leftLine                rightLine
-     *   ↓                       ↓
-     * | 8 | - someOldCode...  | 8 | + someNewCode...
-     */
-    const [ leftLine, rightLine ] = Array.from(diffRowDom.querySelectorAll('td.blob-num')).map(dom => {
-      return {
-        lineNumber: parseInt(dom.dataset.lineNumber) - 1,
-        lineState: LineState.getState(dom)
-      }
-    });
-
-    return {
-      leftLine: leftLine,
-      rightLine: rightLine
-    }
   }
 
   /*

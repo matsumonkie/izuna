@@ -3,7 +3,7 @@ import { Popper } from './popper.js';
 import { FilesInfo } from './filesInfo.js';
 import { PullRequestPageService } from './pullRequestPageService.js';
 import { Constants } from './constants.js';
-import { LineState } from './lineState.js';
+import { NumBlob } from './numBlob.js';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const pullRequestPage = new PullRequestPageService();
@@ -24,6 +24,7 @@ function main (payload, pullRequestPage) {
     const splitter = new Splitter(document, Node);
     const filesInfo = new FilesInfo(payload);
     const popper = new Popper(filesInfo);
+    const numBlob = new NumBlob();
     diffDoms.forEach(diffDom => {
       const splitMode = pullRequestPage.isSplitMode(diffDom);
       const filePath = pullRequestPage.getFilePath(diffDom);
@@ -31,8 +32,8 @@ function main (payload, pullRequestPage) {
         oldModuleInfo: payload.oldPackageInfo[filePath],
         newModuleInfo: payload.newPackageInfo[filePath]
       };
-      generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
-      watchDiffForCodeExpansion(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
+      generateIzuna(pullRequestPage, splitter, numBlob, popper, diffDom, splitMode, filePath, moduleInfo);
+      watchDiffForCodeExpansion(pullRequestPage, splitter, numBlob, popper, diffDom, splitMode, filePath, moduleInfo);
     });
     document.body.appendChild(popper.tooltip);
   } catch (error) {
@@ -41,11 +42,11 @@ Try reloading your page
 If the error keep appearing, please report it to https://github.com/matsumonkie/izuna/issues
 Stacktrace: ` + error.stack;
     console.error(message);
-    throw error;
+    return;
   }
 }
 
-function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo) {
+function generateIzuna(pullRequestPage, splitter, numBlob, popper, diffDom, splitMode, filePath, moduleInfo) {
   if(moduleInfo.oldModuleInfo || moduleInfo.newPackageInfo) {
     var diffRowsDom = pullRequestPage.getRows(filePath, diffDom);
     diffRowsDom = pullRequestPage.normalizeDiff(diffRowsDom, splitMode);
@@ -54,17 +55,17 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
       const newModuleInfo = moduleInfo.newModuleInfo;
 
       if(splitMode) { // split mode, we need to handle 2 rows, one for the old diff and one for the new diff
-        const line = pullRequestPage.getLineNumberForSplitMode(diffRowDom);
+        const line = numBlob.getNumBlobForSplitMode(diffRowDom);
         const codeRows = pullRequestPage.getCodeRowsForSplitMode(diffRowDom);
 
         handleCodeRow(splitter, filePath, codeRows.leftLineRow.parentNode, codeRows.leftLineRow.codeNode, Constants.LEFT_LOCATION, line.leftLine.lineState, oldModuleInfo, line.leftLine.lineNumber);
         handleCodeRow(splitter, filePath, codeRows.rightLineRow.parentNode, codeRows.rightLineRow.codeNode, Constants.RIGHT_LOCATION, line.rightLine.lineState, newModuleInfo, line.rightLine.lineNumber);
       } else { // unified mode, we only need to handle 1 row
-        const line = pullRequestPage.getLineNumberForUnifiedMode(diffRowDom);
+        const line = numBlob.getNumBlobForUnifiedMode(diffRowDom);
         const codeRow = pullRequestPage.getCodeRowForUnifiedMode(diffRowDom);
         if(codeRow) {
           var whichModuleInfo;
-          if(line.lineState === LineState.ADDED) {
+          if(line.lineState === NumBlob.ADDED) {
             whichModuleInfo = newModuleInfo;
           } else {
             whichModuleInfo = oldModuleInfo;
@@ -88,14 +89,14 @@ function handleCodeRow(splitter, filePath, parentNode, codeNode, location, lineS
  * on github, only the modified part of a file gets shown. If the user wants to see more, he can click on the expand button.
  * We watch the whole diff file and anytime child nodes are being added, we re-run izuna on the whole file
  */
-function watchDiffForCodeExpansion (pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo) {
+function watchDiffForCodeExpansion (pullRequestPage, splitter, numBlob, popper, diffDom, splitMode, filePath, moduleInfo) {
   const codeDiffDom = diffDom.querySelector('table.diff-table tbody');
   const config = { attributes: false, childList: true, subtree: false };
 
   const callback = function(mutationsList, observer) {
     mutationsList.forEach (mutation => {
       if (mutation.type === 'childList') {
-        generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, filePath, moduleInfo);
+        generateIzuna(pullRequestPage, splitter, numBlob, popper, diffDom, splitMode, filePath, moduleInfo);
       }
     });
   };
