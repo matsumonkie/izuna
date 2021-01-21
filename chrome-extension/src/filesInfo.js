@@ -1,3 +1,4 @@
+import { Constants } from './constants.js';
 import { LineState } from './lineState.js';
 
 export class FilesInfo {
@@ -6,12 +7,18 @@ export class FilesInfo {
     this.filesInfo = filesInfo;
   }
 
-  findType(filePath, state, col, row) {
+  findType(filePath, location, state, col, row) {
     var fileState;
-    if(state === LineState.ADDED || state === LineState.UNMODIFIED) {
-      fileState = this.filesInfo.newPackageInfo;
-    } else {
+    if(location === Constants.LEFT_LOCATION) {
       fileState = this.filesInfo.oldPackageInfo;
+    } else if (location === Constants.RIGHT_LOCATION) {
+      fileState = this.filesInfo.newPackageInfo;
+    } else { // CENTER
+      if(state === LineState.DELETED) {
+        fileState = this.filesInfo.oldPackageInfo;
+      } else {
+        fileState = this.filesInfo.newPackageInfo;
+      }
     }
 
     if(fileState) {
