@@ -67,7 +67,7 @@ export class PullRequestPageService {
   }
 
   /*
-   * Not all diff rows have the same html structure. This function makes sure every row are "normalized"
+   * Not all diff rows have the same html structure. This function makes sure every rows are "normalized"
    */
   normalizeDiff(diffRowsDom, splitMode) {
     return Array.from(diffRowsDom).map (diffRowDom => {
