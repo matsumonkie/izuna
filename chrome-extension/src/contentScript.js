@@ -6,7 +6,7 @@ import { Constants } from './constants.js';
 import { LineState } from './lineState.js';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  const pullRequestPage = new PullRequestPageService(document);
+  const pullRequestPage = new PullRequestPageService();
   if(msg.cmd === Constants.CMD_WHICH_FILES) {
     sendResponse(pullRequestPage.getFilesWithExtension(".hs"));
   } else if(msg.cmd === Constants.CMD_IZUNA_INFO) {
@@ -39,9 +39,9 @@ function main (payload, pullRequestPage) {
     const message = `izuna: Fatal error occurred, izuna will stop working on this page
 Try reloading your page
 If the error keep appearing, please report it to https://github.com/matsumonkie/izuna/issues
-Error is: ` + error;
+Stacktrace: ` + error.stack;
     console.error(message);
-    return;
+    throw error;
   }
 }
 
@@ -62,14 +62,15 @@ function generateIzuna(pullRequestPage, splitter, popper, diffDom, splitMode, fi
       } else { // unified mode, we only need to handle 1 row
         const line = pullRequestPage.getLineNumberForUnifiedMode(diffRowDom);
         const codeRow = pullRequestPage.getCodeRowForUnifiedMode(diffRowDom);
-
-        var whichModuleInfo;
-        if(line.lineState === LineState.ADDED) {
-          whichModuleInfo = newModuleInfo;
-        } else {
-          whichModuleInfo = oldModuleInfo;
+        if(codeRow) {
+          var whichModuleInfo;
+          if(line.lineState === LineState.ADDED) {
+            whichModuleInfo = newModuleInfo;
+          } else {
+            whichModuleInfo = oldModuleInfo;
+          }
+          handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, Constants.CENTER_LOCATION, line.lineState, whichModuleInfo, line.lineNumber);
         }
-        handleCodeRow(splitter, filePath, codeRow.parentNode, codeRow.codeNode, Constants.CENTER_LOCATION, line.lineState, whichModuleInfo, line.lineNumber);
       }
     });
     popper.mkNotificationEvents(diffDom);

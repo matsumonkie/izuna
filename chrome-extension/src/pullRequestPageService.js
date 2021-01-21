@@ -9,6 +9,7 @@ export class PullRequestPageService {
   constructor() {}
 
   static codeRowClasses = ['blob-code-inner', 'blob-code-marker']
+  static lineRowSelector = 'td.blob-code:not(:empty)';
 
   // On the pull request page, we want to fetch the path of all the files with the given extension (e.g: ".hs" for haskell files)
   getFilesWithExtension(extension) {
@@ -99,7 +100,7 @@ export class PullRequestPageService {
      * in split mode oldLineNumberDom and newLineNumberDom represents
      * respectively the line number from the left and the right, i.e:
      *
-     *   oldLineNumberDom        newLineNumberDom
+     *   leftLine                rightLine
      *   ↓                       ↓
      * | 8 | - someOldCode...  | 8 | + someNewCode...
      */
@@ -123,21 +124,23 @@ export class PullRequestPageService {
     return Array.from(diffRowsDom).map (diffRowDom => {
       var lineRows;
       if (splitMode) {
-        lineRows = Array.from(this.getLineRowForSplitMode(diffRowDom));
+        lineRows = this.getLineRowForSplitMode(diffRowDom);
       } else {
-        lineRows = Array.from([ this.getLineRowForUnifiedMode(diffRowDom) ]);
+        lineRows = [ this.getLineRowForUnifiedMode(diffRowDom) ];
       }
-      lineRows.forEach (lineRow => {
-        var codeRow = this.getCodeRow(lineRow);
-        // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
-        if(! codeRow) {
-          codeRow = document.createElement("span");
-          codeRow.classList.add(...PullRequestPageService.codeRowClasses);
-          while(lineRow.firstChild) {
-            const child = lineRow.firstChild;
-            codeRow.appendChild(lineRow.removeChild(child));
+      Array.from(lineRows).forEach (lineRow => {
+        if(lineRow) {
+          var codeRow = this.getCodeRow(lineRow);
+          // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
+          if(! codeRow) {
+            codeRow = document.createElement("span");
+            codeRow.classList.add(...PullRequestPageService.codeRowClasses);
+            while(lineRow.firstChild) {
+              const child = lineRow.firstChild;
+              codeRow.appendChild(lineRow.removeChild(child));
+            }
+            lineRow.appendChild(codeRow);
           }
-          lineRow.appendChild(codeRow);
         }
       })
 
@@ -151,9 +154,10 @@ export class PullRequestPageService {
    *
    *    | 8 | + someCode
    *          ‾‾‾‾‾‾‾‾‾‾
+   * caveats: this can be null!
    */
   getLineRowForUnifiedMode(diffRowDom) {
-    return diffRowDom.querySelector('td.blob-code:not(:empty)');
+    return diffRowDom.querySelector(PullRequestPageService.lineRowSelector);
   }
 
   /*

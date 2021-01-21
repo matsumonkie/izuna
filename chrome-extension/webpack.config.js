@@ -8,8 +8,10 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    sourceMapFilename: "[name].js.map"
   },
+  devtool: "inline-source-map",
   plugins: [
     new CleanTerminalPlugin(),
   ],
