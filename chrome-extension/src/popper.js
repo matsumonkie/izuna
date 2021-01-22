@@ -5,21 +5,21 @@ import { Splitter } from './splitter.js';
 /*
  * create a popper notification and attach it to the correct html dom
  */
-export class Popper {
+class Popper {
 
   constructor(filesInfo) {
-    var arrow = document.createElement("div");
-    arrow.setAttribute("id", "arrow");
-    arrow.setAttribute("data-popper-arrow", "");
+    var arrow = document.createElement('div');
+    arrow.setAttribute('id', 'arrow');
+    arrow.setAttribute('data-popper-arrow', '');
 
-    var tooltipText = document.createElement("div");
-    tooltipText.setAttribute("id", "tooltipText");
+    var tooltipText = document.createElement('div');
+    tooltipText.setAttribute('id', 'tooltipText');
 
-    var tooltip = document.createElement("pre");
-    tooltip.setAttribute("id", "tooltip");
-    tooltip.setAttribute("role", "tooltip");
-    tooltip.appendChild(tooltipText)
-    tooltip.appendChild(arrow)
+    var tooltip = document.createElement('pre');
+    tooltip.setAttribute('id', 'tooltip');
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.appendChild(tooltipText);
+    tooltip.appendChild(arrow);
 
     this.tooltip = tooltip;
     this.filesInfo = filesInfo;
@@ -45,7 +45,7 @@ export class Popper {
     diffDom.querySelectorAll(`span.${Splitter.REAL_SPAN}`).forEach(span => {
 
       // show annotation
-      span.addEventListener("mouseover", event => {
+      span.addEventListener('mouseover', () => {
         const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.location, span.dataset.state, span.dataset.col, span.dataset.row);
         if(typeInfo) {
           const spanAttr = this.buildSpanAttr(span, typeInfo);
@@ -60,7 +60,7 @@ export class Popper {
       });
 
       // hide annotation
-      span.addEventListener("mouseleave", event => {
+      span.addEventListener('mouseleave', () => {
         const typeInfo = this.filesInfo.findType(span.dataset.filePath, span.dataset.location, span.dataset.state, span.dataset.col, span.dataset.row);
         if(typeInfo) {
           this.tooltip.removeAttribute('data-show');
@@ -85,7 +85,7 @@ export class Popper {
       colAttr: `[data-col="${typeInfo.centerCol}"]`,
       locationAttr: `[data-location="${span.dataset.location}"]`,
       stateAttr: `[data-state="${span.dataset.state}"]`,
-    }
+    };
   }
 
   highlightFocusedRegion(diffDom, spanAttr, typeInfo) {
@@ -103,3 +103,5 @@ export class Popper {
     });
   }
 }
+
+export { Popper };

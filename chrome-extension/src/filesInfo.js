@@ -24,7 +24,7 @@ export class FilesInfo {
     if(fileState) {
       const fileInfo = fileState[filePath];
       if(fileInfo) {
-        const typeRef = this.findTypeRef(fileInfo.typeRefs[row], col, row);
+        const typeRef = this.findTypeRef(fileInfo.typeRefs[row], col);
         if(typeRef) {
           const specializedType = fileInfo.types[typeRef.specializedType];
           if(specializedType) {
@@ -34,15 +34,15 @@ export class FilesInfo {
               startCol: typeRef.span.colStart,
               endCol: typeRef.span.colEnd - 1,
               centerCol: centerCol,
-              typeName: specializedType.replace(/ -> /g, " ⟶ ")
-            }
+              typeName: specializedType.replace(/ -> /g, ' ⟶ ')
+            };
           }
         }
       }
     }
   }
 
-  findTypeRef(typeRefs, col, row) {
+  findTypeRef(typeRefs, col) {
     if(typeRefs) {
 
       const moreSpecialized = (a, b) => {

@@ -1,17 +1,16 @@
-export class Constants {
+const Constants = {
+  CMD_WHICH_FILES: 'WHICH_FILES',
+  CMD_IZUNA_INFO: 'IZUNA_INFO',
 
-  constructor() {}
+  IZUNA_HOST_URL: 'https://izuna.app',
 
-  static CMD_WHICH_FILES = 'WHICH_FILES';
-  static CMD_IZUNA_INFO = 'IZUNA_INFO';
+  ENABLE_IZUNA_KEY: 'IZUNA',
 
-  static IZUNA_HOST_URL = 'https://izuna.app';
+  LEFT_LOCATION: 'LEFT',
+  CENTER_LOCATION: 'CENTER',
+  RIGHT_LOCATION: 'RIGHT',
 
-  static ENABLE_IZUNA_KEY = 'IZUNA';
+  IZUNA_HIGHLIGHT_REGION: 'izuna-highlighted-region',
+};
 
-  static LEFT_LOCATION = 'LEFT';
-  static CENTER_LOCATION = 'CENTER';
-  static RIGHT_LOCATION = 'RIGHT';
-
-  static IZUNA_HIGHLIGHT_REGION = 'izuna-highlighted-region';
-}
+export { Constants };

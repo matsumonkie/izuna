@@ -26,11 +26,11 @@ export class IzunaServerService {
     return fetch(this.getPrDetailsUrl())
       .then(response => {
         if(response.ok) {
-          return response.json()
+          return response.json();
         } else {
           throw `Could not fetch pull request information for this PR! Response status: ${response.status} for url: ${response.url}`;
         }
-      })
+      });
   }
 
   fetchFilesInfo(pullRequestDetails, files) {
@@ -46,12 +46,12 @@ export class IzunaServerService {
 
   async fetchFileInfo(commitId, files) {
     return fetch( this.getFileInfoUrl(commitId),
-                  { method: 'POST',
-                    credentials: 'omit',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(files)
-                  }
-                )
+      { method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(files)
+      }
+    )
       .then(response => {
         if (response.ok) {
           return response.json();

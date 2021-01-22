@@ -29,18 +29,15 @@
  *      when even: "ho"
  *
  */
-export class Splitter {
+class SplitterClass {
 
   constructor(document = document, Node = Node) {
     this.document = document;
     this.Node = Node;
   }
 
-  static REAL_SPAN = 'izuna-char';
-  static FAKE_SPAN = 'izuna-fake-char';
-
   createSpan(spanType, filePath, location, lineState, lineNumber, columnNumber, textContent) {
-    var newChar = this.document.createElement("span");
+    var newChar = this.document.createElement('span');
     newChar.setAttribute('class', spanType);
     newChar.setAttribute('data-file-path', filePath);
     newChar.setAttribute('data-location', location);
@@ -56,7 +53,7 @@ export class Splitter {
   split(docFragment, dom, filePath, location, lineState, lineNumber) {
     const buildSpans = (node, charPos) => {
       if(node.nodeType === this.Node.TEXT_NODE) {
-        var parent = this.document.createElement("span");
+        var parent = this.document.createElement('span');
         const characterNodes = Array.from(node.textContent).map((character) => {
           const realSpan = this.createSpan(Splitter.REAL_SPAN, filePath, location, lineState, lineNumber, charPos, character);
           charPos = charPos + 0.5;
@@ -74,27 +71,35 @@ export class Splitter {
         return [parent, charPos];
       } else {
         Array.from(node.childNodes).forEach((child) => {
-          const [newChild, newCharPos] = buildSpans(child, charPos)
+          const [newChild, newCharPos] = buildSpans(child, charPos);
           charPos = newCharPos;
-          child.replaceWith(newChild)
+          child.replaceWith(newChild);
         });
 
         return [node, charPos];
       }
-    }
-    var [newNode, _] = buildSpans(dom.cloneNode(true), 0);
+    };
+    var [newNode] = buildSpans(dom.cloneNode(true), 0);
     docFragment.appendChild(newNode);
 
     return docFragment;
   }
 
   // this is for debug purpose only
-  show(splitted, margin = "") {
+  show(splitted, margin = '') {
     if(splitted.nodeType === this.Node.TEXT_NODE) {
       console.log(margin + '[' + splitted.textContent + ']');
     } else {
       console.log(margin + splitted.cloneNode().outerHTML);
     }
-    Array.from(splitted.childNodes).forEach((child) => this.show(child, margin + "  "));
+    Array.from(splitted.childNodes).forEach((child) => this.show(child, margin + '  '));
   }
 }
+
+const Splitter = {
+  REAL_SPAN: 'izuna-char',
+  FAKE_SPAN: 'izuna-fake-char',
+  SplitterClass: SplitterClass
+};
+
+export { Splitter };

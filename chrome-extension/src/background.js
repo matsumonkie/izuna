@@ -1,3 +1,5 @@
+/*global chrome*/
+
 import { IzunaServerService } from './izunaServerService.js';
 import { Constants } from './constants.js';
 
@@ -28,7 +30,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
           chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
             izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
-              chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, (response) => {});
+              chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
             });
           });
         });
@@ -56,15 +58,14 @@ function getGithubPullRequestInfo(tabId, changeInfo, tab) {
     const pathAction = url.pathname.split('/')[3];
     const prTab = url.pathname.split('/')[5];
     if(pathAction === 'pull' && prTab === 'files') {
-      const [empty, user, repo, pull, pr, ...tail] = url.pathname.split("/");
-
+      const params = url.pathname.split('/');
       const pullRequestInfo = {
-        user: user,
-        repo: repo,
-        pr: pr
+        user: params[1],
+        repo: params[2],
+        pr: params[4]
       };
       Object.entries(pullRequestInfo).forEach(([key, value]) => {
-        if(! value) { throw `Could not retrieve pull request info for key: ${key}` }
+        if(! value) { throw `Could not retrieve pull request info for key: ${key}`; }
       });
 
       return pullRequestInfo;

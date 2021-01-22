@@ -1,5 +1,6 @@
 const path = require('path');
 const CleanTerminalPlugin = require('clean-terminal-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -11,9 +12,10 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     sourceMapFilename: "[name].js.map"
   },
-  devtool: "inline-source-map",
+  devtool: "inline-cheap-module-source-map",
   plugins: [
     new CleanTerminalPlugin(),
+    new ESLintPlugin(),
   ],
   module: {
     rules: [
@@ -24,7 +26,6 @@ module.exports = {
         options: {
           presets: ["@babel/preset-env"],
           plugins: [
-            "@babel/plugin-proposal-class-properties",
             "@babel/plugin-transform-runtime",
           ],
         }

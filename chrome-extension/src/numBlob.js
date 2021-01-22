@@ -1,12 +1,6 @@
-export class NumBlob {
+class NumBlobClass {
 
   constructor() {}
-
-  static ADDED = 'ADDED';
-  static DELETED = 'DELETED';
-  static UNMODIFIED = 'UNMODIFIED';
-
-  static blobNumSelector = 'td.blob-num';
 
   getNumBlobForUnifiedMode(diffRowDom) {
     /*
@@ -50,23 +44,35 @@ export class NumBlob {
       return {
         lineNumber: parseInt(dom.dataset.lineNumber) - 1,
         lineState: this.getState(dom)
-      }
+      };
     });
 
     return {
       leftLine: leftLine,
       rightLine: rightLine
-    }
+    };
   }
 
   getState(lineDom) {
-    const classList = lineDom.classList
-    if(classList.contains("blob-num-addition")) {
+    const classList = lineDom.classList;
+    if(classList.contains('blob-num-addition')) {
       return NumBlob.ADDED;
-    } else if (classList.contains("blob-num-deletion")) {
+    } else if (classList.contains('blob-num-deletion')) {
       return NumBlob.DELETED;
     } else {
       return NumBlob.UNMODIFIED;
     }
   }
 }
+
+const NumBlob = {
+  ADDED: 'ADDED',
+  DELETED: 'DELETED',
+  UNMODIFIED: 'UNMODIFIED',
+
+  blobNumSelector: 'td.blob-num',
+  NumBlobClass: NumBlobClass
+
+};
+
+export { NumBlob };

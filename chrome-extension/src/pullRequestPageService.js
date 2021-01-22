@@ -1,5 +1,5 @@
-import { NumBlob } from './numBlob.js';
-
+const codeRowClasses = ['blob-code-inner', 'blob-code-marker'];
+const lineRowSelector = 'td.blob-code:not(:empty)';
 /*
  * this service extract parts of the dom for
  * a github pull request page dom (e.g: https://github.com/someUser/someRepo/pull/16/files),
@@ -8,12 +8,9 @@ export class PullRequestPageService {
 
   constructor() {}
 
-  static codeRowClasses = ['blob-code-inner', 'blob-code-marker']
-  static lineRowSelector = 'td.blob-code:not(:empty)';
-
   // On the pull request page, we want to fetch the path of all the files with the given extension (e.g: ".hs" for haskell files)
   getFilesWithExtension(extension) {
-    return Array.from(document.querySelectorAll("div.file-header div.file-info a"))
+    return Array.from(document.querySelectorAll('div.file-header div.file-info a'))
       .map(e => e.textContent)
       .filter(e => e.endsWith(extension));
   }
@@ -27,9 +24,14 @@ export class PullRequestPageService {
     return diffDoms;
   }
 
+  // Sometimes the diff doesn't load and we have a `Load diff` button instead
+  diffHidden(diffDom) {
+    return diffDom.querySelector('include-fragment.js-diff-entry-loader');
+  }
+
   // whether we are diffing in split or unified mode
   isSplitMode(diffDom) {
-    return !!diffDom.querySelector("table.file-diff-split");
+    return !!diffDom.querySelector('table.file-diff-split');
   }
 
   /*
@@ -48,11 +50,11 @@ export class PullRequestPageService {
    *   myProject/src/main.js
    */
   getFilePath(diffDom) {
-    const filePathDom = diffDom.querySelector(".file-header .file-info a[title]")
+    const filePathDom = diffDom.querySelector('.file-header .file-info a[title]');
     if(filePathDom && filePathDom.text) {
-      return filePathDom.text
+      return filePathDom.text;
     } else {
-      throw `Could not fetch file name!`;
+      throw 'Could not fetch file name!';
     }
   }
 
@@ -82,8 +84,8 @@ export class PullRequestPageService {
           var codeRow = this.getCodeRow(lineRow);
           // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
           if(! codeRow) {
-            codeRow = document.createElement("span");
-            codeRow.classList.add(...PullRequestPageService.codeRowClasses);
+            codeRow = document.createElement('span');
+            codeRow.classList.add(...codeRowClasses);
             while(lineRow.firstChild) {
               const child = lineRow.firstChild;
               codeRow.appendChild(lineRow.removeChild(child));
@@ -91,7 +93,7 @@ export class PullRequestPageService {
             lineRow.appendChild(codeRow);
           }
         }
-      })
+      });
 
       return diffRowDom;
     });
@@ -106,7 +108,7 @@ export class PullRequestPageService {
    * caveats: this can be null!
    */
   getLineRowForUnifiedMode(diffRowDom) {
-    return diffRowDom.querySelector(PullRequestPageService.lineRowSelector);
+    return diffRowDom.querySelector(lineRowSelector);
   }
 
   /*
@@ -133,7 +135,7 @@ export class PullRequestPageService {
    *            ‾‾‾‾‾‾‾‾
    */
   getCodeRow(lineRow) {
-    return lineRow.querySelector(`span.${PullRequestPageService.codeRowClasses.join('.')}`);
+    return lineRow.querySelector(`span.${codeRowClasses.join('.')}`);
   }
 
   /*
@@ -144,9 +146,9 @@ export class PullRequestPageService {
    * | 8 |   | - someOldCode...
    */
   getCodeRowForUnifiedMode(diffRowDom) {
-    const lineRow = this.getLineRowForUnifiedMode(diffRowDom)
+    const lineRow = this.getLineRowForUnifiedMode(diffRowDom);
     if(!lineRow) {
-      return null
+      return null;
     } else {
       return {
         parentNode: lineRow,
@@ -169,7 +171,7 @@ export class PullRequestPageService {
       return {
         parentNode: lineRow,
         codeNode: this.getCodeRow(lineRow)
-      }
+      };
     });
 
     return {
