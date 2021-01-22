@@ -21,10 +21,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }]);
   });
 
-  chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, function(result) {
-    if(result[Constants.ENABLE_IZUNA_KEY]) {
-      const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
-      if(pullRequestInfo) {
+  const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
+  if(pullRequestInfo) {
+    chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, function(result) {
+      if(result[Constants.ENABLE_IZUNA_KEY]) {
+        const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
         const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
 
         izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
@@ -35,8 +36,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           });
         });
       }
-    }
-  });
+    })
+  }
 });
 
 /* if the current tab is loaded and is a github pull request page, return the pr info
