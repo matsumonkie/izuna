@@ -109,6 +109,26 @@ saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{fi
       FilePath.joinPath projectRootAsList
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 -- * build project info
 
 buildProjectInfo
@@ -117,7 +137,7 @@ buildProjectInfo
   -> IO ModulesInfo
 buildProjectInfo hieDirectory df = do
   hieFiles <- getHieFiles
-  let filePathToRawModule = getFilePathToRawModule hieFiles & M.map removeUselessNodes
+  let filePathToRawModule = getFilePathToRawModule hieFiles
   return $ M.map (\rawModule ->
                     ModuleInfo { _minfo_types = recoverTypes df rawModule
                                , _minfo_typeRefs = buildModuleInfo rawModule
@@ -260,20 +280,3 @@ groupByLine moduleAst2 =
       case isOneLine span of
         False -> Nothing
         True  -> Just _span_lineStart
--- * remove useless nodes
-
--- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
--- children, we get rid of it
-removeUselessNodes :: RawModule a b -> RawModule a b
-removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
-  rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
-  where
-    go :: HieAST a -> [HieAST a] -> [HieAST a]
-    go hieAst@Ghc.Node{..} acc =
-      case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
-        ([], False) -> acc
-        (_, False) -> foldr go [] nodeChildren ++ acc
-        _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
-
-    hasSpecializedType :: [a] -> Bool
-    hasSpecializedType = not . List.null

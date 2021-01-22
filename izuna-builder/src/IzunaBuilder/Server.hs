@@ -29,7 +29,7 @@ import           IzunaBuilder.Type
 
 run :: Int -> IO ()
 run port = do
-  Say.sayString $ "running izuna-builder on port: " <> show port
+  Say.sayString $ "running izuna-builder on port: " <> "somePort"
   app :: Application <- mkApp ""
   Warp.run port app
 
@@ -52,6 +52,24 @@ type WebApi =
 apiServer :: ServerT WebApi AppM
 apiServer =
   projectInfoServer :<|> healthServer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- ** save project info
 
