@@ -13,7 +13,7 @@
                    "http://localhost/"   // dev debug
                  ],
   "background": {
-    "scripts": [ "src/background.js" ],
+    "scripts": [ "dist/background.js" ],
     "persistent": false
   },
   "content_scripts": [

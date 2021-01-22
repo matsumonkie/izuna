@@ -44,3 +44,7 @@
 #tooltip[data-popper-placement^='right'] > #arrow {
   left: -4px;
 }
+
+.izuna-highlighted-region {
+  text-decoration: underline;
+}
