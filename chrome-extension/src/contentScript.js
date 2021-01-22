@@ -59,11 +59,11 @@ function watchForLoadDiff (pullRequestPage, splitter, numBlob, popper, payload, 
     mutationsList.forEach (mutation => {
       const removedNodes = Array.from(mutation.removedNodes);
       console.log(mutation, removedNodes);
-      const deletedDirectly = removedNodes.indexOf(isHiddenDom) > -1
+      const deletedDirectly = removedNodes.indexOf(isHiddenDom) > -1;
       const deletedByAParent = removedNodes.some(parent => parent.contains(isHiddenDom));
       if(deletedDirectly || deletedByAParent)
         handleDiff(pullRequestPage, splitter, numBlob, popper, payload, diffDom);
-    })
+    });
   };
 
   const observer = new MutationObserver(callback);

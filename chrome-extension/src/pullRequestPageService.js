@@ -1,5 +1,6 @@
-const codeRowClasses = ['blob-code-inner', 'blob-code-marker'];
-const lineRowSelector = 'td.blob-code:not(:empty)';
+const CODE_ROW_CLASSES = ['blob-code-inner', 'blob-code-marker'];
+const LINE_ROW_SELECTOR = 'td.blob-code:not(:empty)';
+const IZUNA_ROW_CLASS = 'izuna-row';
 /*
  * this service extract parts of the dom for
  * a github pull request page dom (e.g: https://github.com/someUser/someRepo/pull/16/files),
@@ -82,10 +83,11 @@ export class PullRequestPageService {
       Array.from(lineRows).forEach (lineRow => {
         if(lineRow) {
           var codeRow = this.getCodeRow(lineRow);
-          // sometimes, a row doesn't have a span.blob... child. In this case, we need to manually add one as a default container
+          // sometimes, a row doesn't have a span.blob-code child. In this case, we need to add an one as a default container
           if(! codeRow) {
-            codeRow = document.createElement('span');
-            codeRow.classList.add(...codeRowClasses);
+            codeRow = document.createElement('span'); // blob-code class is probably on the parent, leave this one naked
+            codeRow.classList.add(IZUNA_ROW_CLASS);
+            // TODO: this doesn't seem to work when expanding diff code... no span are being created
             while(lineRow.firstChild) {
               const child = lineRow.firstChild;
               codeRow.appendChild(lineRow.removeChild(child));
@@ -108,7 +110,7 @@ export class PullRequestPageService {
    * caveats: this can be null!
    */
   getLineRowForUnifiedMode(diffRowDom) {
-    return diffRowDom.querySelector(lineRowSelector);
+    return diffRowDom.querySelector(LINE_ROW_SELECTOR);
   }
 
   /*
@@ -135,7 +137,7 @@ export class PullRequestPageService {
    *            ‾‾‾‾‾‾‾‾
    */
   getCodeRow(lineRow) {
-    return lineRow.querySelector(`span.${codeRowClasses.join('.')}`);
+    return lineRow.querySelector(`span.${CODE_ROW_CLASSES.join('.')}, span.${IZUNA_ROW_CLASS}`);
   }
 
   /*
