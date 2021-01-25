@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.tabs.onUpdated.addListener(debounce((tabId, changeInfo, tab) => {
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+  chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [
         new chrome.declarativeContent.PageStateMatcher({
@@ -64,9 +64,9 @@ function main(cache, tabId, pullRequestInfo) {
       const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
 
       izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-        chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
+        chrome.tabs.sendMessage(tabId, { cmd: Constants.PULL_REQUEST_DETAILS_FETCHED }, (files) => {
           izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
-            chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
+            chrome.tabs.sendMessage(tabId, { cmd: Constants.FILES_INFO_FETCHED, payload: payload }, () => {});
           });
         });
       });

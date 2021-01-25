@@ -9,11 +9,11 @@ import { NumBlob } from './numBlob.js';
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const pullRequestPage = new PullRequestPageService();
-  if(msg.cmd === Constants.CMD_WHICH_FILES) {
+  if(msg.cmd === Constants.PULL_REQUEST_DETAILS_FETCHED) {
     sendResponse(pullRequestPage.getFilesWithExtension('.hs'));
-  } else if(msg.cmd === Constants.CMD_IZUNA_INFO) {
+  } else if(msg.cmd === Constants.FILES_INFO_FETCHED) {
     main(msg.payload, pullRequestPage);
-    sendResponse({ cmd: Constants.CMD_IZUNA_APP_DONE });
+    sendResponse({ cmd: Constants.IZUNA_APP_DONE });
   } else {
     console.error(`izuna: Unknown command of from background received in contentScript: ${msg}`);
   }
