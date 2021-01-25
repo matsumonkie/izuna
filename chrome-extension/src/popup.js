@@ -5,7 +5,7 @@ import { Constants } from './constants.js';
 document.addEventListener('DOMContentLoaded', () => {
   const checkbox = document.querySelector('input#enableIzuna');
 
-  getSavedBackgroundColor((savedChecked) => {
+  getEnableIzuna((savedChecked) => {
     if(savedChecked) {
       checkbox.checked = savedChecked;
     }
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function getSavedBackgroundColor(callback) {
+function getEnableIzuna(callback) {
   chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, (checked) => {
     callback(chrome.runtime.lastError ? null : checked[Constants.ENABLE_IZUNA_KEY]);
   });
