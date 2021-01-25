@@ -24,7 +24,7 @@
     }
   ],
   "page_action": {
-    "default_popup": "popup.html"
+    "default_popup": "src/popup.html"
   },
   "manifest_version": 2
 }
