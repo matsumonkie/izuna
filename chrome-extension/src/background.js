@@ -27,26 +27,21 @@ chrome.tabs.onUpdated.addListener(debounce((tabId, changeInfo, tab) => {
   checkTabUpdate(tabId, changeInfo, tab);
 }, 1000));
 
-function debounce(callback, delay){
+function debounce(callback, delay) {
   var timer;
-  return function(){
+  return function() {
     var args = arguments;
     var context = this;
     clearTimeout(timer);
-    timer = setTimeout(function(){
-      callback.apply(context, args);
-    }, delay)
-  }
+    timer = setTimeout(() => { callback.apply(context, args);  }, delay);
+  };
 }
 
 function checkTabUpdate(tabId, changeInfo, tab) {
   if(isTabLoaded(changeInfo, tab)) {
     const pullRequestInfo = getGithubPullRequestInfo(tab);
-    console.log("tab update");
     if(pullRequestInfo) {
-      console.log("update?");
-      main(Cache, tabId, pullRequestInfo)
-      console.log("update!");
+      main(Cache, tabId, pullRequestInfo);
     }
   }
 }
@@ -64,21 +59,20 @@ function isTabLoaded(changeInfo, tab) {
 }
 
 function main(cache, tabId, pullRequestInfo) {
-  return chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, (result) => {
+  chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, (result) => {
     if(result[Constants.ENABLE_IZUNA_KEY]) {
       const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
 
-      return izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-        return chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
-          return izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
-            return chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
+      izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
+        chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
+          izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
+            chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
           });
         });
-      })
+      });
     }
-  })
+  });
 }
-
 
 /* return the pr info
  *  eg:

@@ -7,17 +7,6 @@ import { PullRequestPageService } from './pullRequestPageService.js';
 import { Constants } from './constants.js';
 import { NumBlob } from './numBlob.js';
 
-// we need to inform the background script, every time we refresh the page,
-//chrome.runtime.sendMessage({ cmd: Constants.CMD_TAB_RELOAD }, () => {});
-//if(msg.cmd === Constants.CMD_IZUNA_INFO) {
-//const pullRequestPage = new PullRequestPageService();
-//main(msg.payload, pullRequestPage);
-//chrome.runtime.sendMessage({ cmd: Constants.CMD_IZUNA_APP_DONE }, () => {});
-//  }
-//});
-
-
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const pullRequestPage = new PullRequestPageService();
   if(msg.cmd === Constants.CMD_WHICH_FILES) {
@@ -69,7 +58,6 @@ function watchForLoadDiff (pullRequestPage, splitter, numBlob, popper, payload, 
   const callback = function(mutationsList) {
     mutationsList.forEach (mutation => {
       const removedNodes = Array.from(mutation.removedNodes);
-      console.log(mutation, removedNodes);
       const deletedDirectly = removedNodes.indexOf(isHiddenDom) > -1;
       const deletedByAParent = removedNodes.some(parent => parent.contains(isHiddenDom));
       if(deletedDirectly || deletedByAParent)
