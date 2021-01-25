@@ -41,8 +41,8 @@ jobs:
         #stack build izuna-server --stack-yaml=stack-8.10.1.yaml --no-nix --force-dirty
 
     - name: izuna for izuna-builder
-      uses: matsumonkie/izuna-action@v0.63
+      uses: matsumonkie/izuna-action@v0.64
       with:
         ghcVersion: '8.10.1'
-        hieDirectory: 'izuna-builder/.hiei/'
+        hieDirectory: 'izuna-builder/.hie/'
         projectRoot: 'izuna-builder/'
