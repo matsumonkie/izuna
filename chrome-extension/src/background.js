@@ -2,6 +2,7 @@
 
 import { IzunaServerService } from './izunaServerService.js';
 import { Constants } from './constants.js';
+import { Cache } from './cache.js';
 
 chrome.runtime.onInstalled.addListener(() => {
   var keyValue = {};
@@ -9,7 +10,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set(keyValue);
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(debounce((tabId, changeInfo, tab) => {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [
@@ -17,30 +18,69 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           pageUrl: { hostEquals: 'github.com' }, // enable extension icon when we are on github.com only
         })
       ],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
+      actions: [
+        new chrome.declarativeContent.ShowPageAction()
+      ]
     }]);
   });
 
-  const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
-  if(pullRequestInfo) {
-    chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, function(result) {
-      if(result[Constants.ENABLE_IZUNA_KEY]) {
-        const pullRequestInfo = getGithubPullRequestInfo(tabId, changeInfo, tab);
-        const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
+  checkTabUpdate(tabId, changeInfo, tab);
+}, 1000));
 
-        izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
-          chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
-            izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
-              chrome.tabs.sendMessage(tab.id, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
-            });
+function debounce(callback, delay){
+  var timer;
+  return function(){
+    var args = arguments;
+    var context = this;
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      callback.apply(context, args);
+    }, delay)
+  }
+}
+
+function checkTabUpdate(tabId, changeInfo, tab) {
+  if(isTabLoaded(changeInfo, tab)) {
+    const pullRequestInfo = getGithubPullRequestInfo(tab);
+    console.log("tab update");
+    if(pullRequestInfo) {
+      console.log("update?");
+      main(Cache, tabId, pullRequestInfo)
+      console.log("update!");
+    }
+  }
+}
+
+function isTabLoaded(changeInfo, tab) {
+  const url = new URL(tab.url);
+  return (
+    changeInfo &&
+      changeInfo.status &&
+      changeInfo.status === 'complete' &&
+      tab.active &&
+      tab.status === 'complete' &&
+      url.hostname === 'github.com'
+  );
+}
+
+function main(cache, tabId, pullRequestInfo) {
+  return chrome.storage.sync.get(Constants.ENABLE_IZUNA_KEY, (result) => {
+    if(result[Constants.ENABLE_IZUNA_KEY]) {
+      const izunaServerService = new IzunaServerService(Constants.IZUNA_HOST_URL, pullRequestInfo);
+
+      return izunaServerService.fetchPullRequestCommitsDetails(pullRequestInfo).then(pullRequestDetails => {
+        return chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_WHICH_FILES }, (files) => {
+          return izunaServerService.fetchFilesInfo(pullRequestDetails, files).then(payload => {
+            return chrome.tabs.sendMessage(tabId, { cmd: Constants.CMD_IZUNA_INFO, payload: payload }, () => {});
           });
         });
-      }
-    })
-  }
-});
+      })
+    }
+  })
+}
 
-/* if the current tab is loaded and is a github pull request page, return the pr info
+
+/* return the pr info
  *  eg:
  *   input: https://github.com/matsumonkie/izuna-example/pull/7/files
  *   output: { owner: matsumonkie,
@@ -48,29 +88,22 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  *             pullRequest: 7
  *           }
  */
-function getGithubPullRequestInfo(tabId, changeInfo, tab) {
+function getGithubPullRequestInfo(tab) {
   const url = new URL(tab.url);
-  if( changeInfo &&
-      changeInfo.status &&
-      changeInfo.status === 'complete' &&
-      tab.active &&
-      tab.status === 'complete' &&
-      url.hostname === 'github.com') {
-    const pathAction = url.pathname.split('/')[3];
-    const prTab = url.pathname.split('/')[5];
-    if(pathAction === 'pull' && prTab === 'files') {
-      const params = url.pathname.split('/');
-      const pullRequestInfo = {
-        user: params[1],
-        repo: params[2],
-        pr: params[4]
-      };
-      Object.entries(pullRequestInfo).forEach(([key, value]) => {
-        if(! value) { throw `Could not retrieve pull request info for key: ${key}`; }
-      });
+  const pathAction = url.pathname.split('/')[3];
+  const prTab = url.pathname.split('/')[5];
+  if(pathAction === 'pull' && prTab === 'files') {
+    const params = url.pathname.split('/');
+    const pullRequestInfo = {
+      user: params[1],
+      repo: params[2],
+      pr: params[4]
+    };
+    Object.entries(pullRequestInfo).forEach(([key, value]) => {
+      if(! value) { throw `Could not retrieve pull request info for key: ${key}`; }
+    });
 
-      return pullRequestInfo;
-    }
+    return pullRequestInfo;
   }
 
   return false;

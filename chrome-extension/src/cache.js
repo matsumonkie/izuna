@@ -1,0 +1,4 @@
+var Cache = {
+};
+
+export { Cache };

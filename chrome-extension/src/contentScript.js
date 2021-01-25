@@ -7,13 +7,24 @@ import { PullRequestPageService } from './pullRequestPageService.js';
 import { Constants } from './constants.js';
 import { NumBlob } from './numBlob.js';
 
+// we need to inform the background script, every time we refresh the page,
+//chrome.runtime.sendMessage({ cmd: Constants.CMD_TAB_RELOAD }, () => {});
+//if(msg.cmd === Constants.CMD_IZUNA_INFO) {
+//const pullRequestPage = new PullRequestPageService();
+//main(msg.payload, pullRequestPage);
+//chrome.runtime.sendMessage({ cmd: Constants.CMD_IZUNA_APP_DONE }, () => {});
+//  }
+//});
+
+
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const pullRequestPage = new PullRequestPageService();
   if(msg.cmd === Constants.CMD_WHICH_FILES) {
     sendResponse(pullRequestPage.getFilesWithExtension('.hs'));
   } else if(msg.cmd === Constants.CMD_IZUNA_INFO) {
     main(msg.payload, pullRequestPage);
-    sendResponse({});
+    sendResponse({ cmd: Constants.CMD_IZUNA_APP_DONE });
   } else {
     console.error(`izuna: Unknown command of from background received in contentScript: ${msg}`);
   }

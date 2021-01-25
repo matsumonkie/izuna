@@ -1,6 +1,8 @@
 const Constants = {
   CMD_WHICH_FILES: 'WHICH_FILES',
   CMD_IZUNA_INFO: 'IZUNA_INFO',
+  CMD_IZUNA_APP_DONE: 'IZUNA_APP_DONE',
+  CMD_TAB_RELOAD: 'TAB_RELOAD',
 
   IZUNA_HOST_URL: 'https://izuna.app',
 
