@@ -45,5 +45,5 @@ jobs:
       uses: matsumonkie/izuna-action@v0.67
       with:
         ghcVersion: '8.10.1'
-        hieDirectory: 'izuna-builder/.hie2/'
+        hieDirectory: 'izuna-builder/.hie/'
         projectRoot: 'izuna-builder/'
