@@ -42,7 +42,7 @@ jobs:
 
 
     - name: izuna for izuna-builder
-      uses: matsumonkie/izuna-action@v0.78
+      uses: matsumonkie/izuna-action@v0.79
       with:
         ghcVersion: '8.10.1'
         hieDirectory: 'izuna-builder/.hie/'
