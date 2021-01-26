@@ -70,45 +70,6 @@ import           IzunaBuilder.Type
 
 -- * handler
 
-saveProjectInfoHandler
-  :: (IO.MonadIO m)
-  => NonEmptyString GhcVersion
-  -> NonEmptyString Username
-  -> NonEmptyString Repo
-  -> NonEmptyString Commit
-  -> [String]
-  -> MultipartData Tmp
-  -> m ()
-saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{files} = do
-  IO.liftIO $ do
-    df <- getDynFlags
-    createDirectory projectPath
-    Monad.forM_ files $ extractHieTar hiePath
-    _ <- Async.async $ do
-      projectInfo <- buildProjectInfo hiePath df
-      _ <- M.traverseWithKey (saveModuleInfo projectPath projectRoot) projectInfo
-      Dir.removeDirectoryRecursive hiePath
-    return ()
-  where
-    projectPath :: FilePath
-    projectPath = getProjectPath username repo commit
-
-    hiePath :: FilePath
-    hiePath = getHiePath projectPath
-
-    createDirectory :: FilePath -> IO ()
-    createDirectory directory =
-      Dir.createDirectoryIfMissing True directory
-
-    extractHieTar :: FilePath -> FileData Tmp -> IO ()
-    extractHieTar targetFolder FileData{..}=
-      Tar.extract targetFolder fdPayload
-
-    projectRoot :: FilePath
-    projectRoot =
-      FilePath.joinPath projectRootAsList
-
-
 -- * build project info
 
 buildProjectInfo
@@ -252,7 +213,7 @@ groupByLine moduleAst2 =
     go :: Map Nat [ModuleAst] -> ModuleAst -> Map Nat [ModuleAst]
     go acc moduleAst@ModuleAst{..} =
       case indexOneLineSpan _mast_span of
-        Nothing    -> List.foldl' go acc _mast_children
+        Nothing    -> undefined
         Just index -> M.insertWith (flip (++)) index [moduleAst] acc
 
     indexOneLineSpan :: Span -> Maybe Nat
@@ -260,6 +221,8 @@ groupByLine moduleAst2 =
       case isOneLine span of
         False -> Nothing
         True  -> Just _span_lineStart
+
+
 -- * remove useless nodes
 
 -- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
@@ -277,3 +240,41 @@ removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
 
     hasSpecializedType :: [a] -> Bool
     hasSpecializedType = not . List.null
+
+saveProjectInfoHandler
+  :: (IO.MonadIO m)
+  => NonEmptyString GhcVersion
+  -> NonEmptyString Username
+  -> NonEmptyString Repo
+  -> NonEmptyString Commit
+  -> [String]
+  -> MultipartData Tmp
+  -> m ()
+saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{files} = do
+  IO.liftIO $ do
+    df <- getDynFlags
+    createDirectory projectPath
+    Monad.forM_ files $ extractHieTar hiePath
+    _ <- Async.async $ do
+      projectInfo <- buildProjectInfo hiePath df
+      _ <- M.traverseWithKey (saveModuleInfo projectPath projectRoot) projectInfo
+      Dir.removeDirectoryRecursive hiePath
+    return ()
+  where
+    projectPath :: FilePath
+    projectPath = getProjectPath username repo commit
+
+    hiePath :: FilePath
+    hiePath = getHiePath projectPath
+
+    createDirectory :: FilePath -> IO ()
+    createDirectory directory =
+      Dir.createDirectoryIfMissing True directory
+
+    extractHieTar :: FilePath -> FileData Tmp -> IO ()
+    extractHieTar targetFolder FileData{..}=
+      Tar.extract targetFolder fdPayload
+
+    projectRoot :: FilePath
+    projectRoot =
+      FilePath.joinPath projectRootAsList

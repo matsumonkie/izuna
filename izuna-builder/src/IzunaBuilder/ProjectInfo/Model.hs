@@ -5,6 +5,7 @@ module IzunaBuilder.ProjectInfo.Model ( RawModule(..)
                                       , ModulesInfo
                                       , ModuleInfo(..)
                                       , Span(..)
+                                      , foo
                                       , isOneLine
                                       ) where
 
@@ -43,14 +44,6 @@ data ModuleInfo = ModuleInfo
     }
     deriving (Show, Generic)
 
-data ModuleAst = ModuleAst
-    { _mast_span            :: Span
-    , _mast_specializedType :: Maybe TypeIndex
-    , _mast_generalizedType :: Maybe TypeIndex
-    , _mast_children        :: [ModuleAst]
-    }
-    deriving (Show, Eq, Generic)
-
 data Span = Span
     { _span_lineStart :: Nat
     , _span_lineEnd   :: Nat
@@ -59,10 +52,20 @@ data Span = Span
     }
     deriving (Show, Eq, Generic)
 
+data ModuleAst = ModuleAst
+    { _mast_span            :: Span
+    , _mast_specializedType :: Maybe TypeIndex
+    , _mast_generalizedType :: Maybe TypeIndex
+    , _mast_children        :: [ModuleAst]
+    }
+    deriving (Show, Eq, Generic)
+
 isOneLine :: Span -> Bool
 isOneLine Span{..} =
   _span_lineStart == _span_lineEnd
 
+foo :: Int
+foo = 5
 
 -- ** initial
 
