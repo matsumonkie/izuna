@@ -81,6 +81,7 @@ saveProjectInfoHandler
   -> m ()
 saveProjectInfoHandler _ username repo commit projectRootAsList MultipartData{files} = do
   IO.liftIO $ do
+    putStrLn "coucu"
     df <- getDynFlags
     createDirectory projectPath
     Monad.forM_ files $ extractHieTar hiePath
