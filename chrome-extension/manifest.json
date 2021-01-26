@@ -6,8 +6,8 @@
              "128": "icons/izuna-128.png"
            },
   "description": "Better Haskell code review for Github!",
-  "permissions": [ "declarativeContent", // enable/disable izuna when the page change from/to a github page
-                   "tabs",               // communicate between content and background script, also modify active tab
+  "permissions": [ "declarativeContent", // make it possible for the user to customize izuna's behaviour (enable/disable izuna)
+                   "tabs",               // communicate between content and background script, listen to tab updates
                    "storage",            // store user prefs
                    "https://izuna.app/", // fetch izuna information from izuna server
                    "http://localhost/"   // dev debug
