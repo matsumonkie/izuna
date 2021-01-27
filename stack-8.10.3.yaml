@@ -1,0 +1,12 @@
+resolver: lts-17.0
+packages:
+- izuna-builder
+- izuna-server
+
+extra-deps:
+- servant-flatten-0.2
+
+nix:
+  enable: true
+  packages: [ zlib ]
+  path: [nixpkgs=./nixpkgs.nix]
