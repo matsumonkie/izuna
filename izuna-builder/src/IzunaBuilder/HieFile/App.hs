@@ -20,8 +20,7 @@ import Data.Generics.Labels ()
 
 -- ** ghc
 
-import           HieBin                (HieFileResult (HieFileResult, hie_file_result),
-                                        readHieFileWithVersion)
+import           HieBin                (HieFileResult (HieFileResult, hie_file_result), readHieFile, hie_file_result_version)
 import           HieTypes              (HieFile, hieVersion)
 import           NameCache             (NameCache, initNameCache)
 import           UniqSupply            (mkSplitUniqSupply)
@@ -102,13 +101,14 @@ getHieFilePathsIn path = do
 -- | Read a .hie file, exiting if it's an incompatible version.
 readCompatibleHieFileOrExit :: NameCache -> FilePath -> IO HieFile
 readCompatibleHieFileOrExit nameCache path = do
-  res <- readHieFileWithVersion (\ (v, _) -> v == hieVersion) nameCache path
-  case res of
-    Right ( HieFileResult{ hie_file_result }, _ ) ->
+  (HieFileResult{..}, _) <- readHieFile nameCache path
+  case (hieVersion == hie_file_result_version) of
+    True ->
       return hie_file_result
-    Left ( v, _ghcVersion ) -> do
+
+    False -> do
       putStrLn $ "incompatible hie file: " <> path
-      putStrLn $ "    expected .hie file version " <> show hieVersion <> " but got " <> show v
+      putStrLn $ "    expected .hie file version " <> show hieVersion <> " but got " <> show hie_file_result_version
       putStrLn $ "    HieParser must be built with the same GHC version"
                <> " as the project it is used on"
       exitFailure

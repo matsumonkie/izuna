@@ -74,6 +74,7 @@ library:
   - tar
   - html-entities
   - ghc-lib
+  - ghc-lib-parser
 
 executables:
   izuna-builder-exe:

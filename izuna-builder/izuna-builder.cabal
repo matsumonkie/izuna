@@ -51,6 +51,7 @@ library
     , foreign-store
     , generic-lens
     , ghc-lib
+    , ghc-lib-parser
     , ghc-paths
     , html-entities
     , mtl
