@@ -50,7 +50,7 @@ library
     , filepath
     , foreign-store
     , generic-lens
-    , ghc
+    , ghc-lib
     , ghc-paths
     , html-entities
     , mtl

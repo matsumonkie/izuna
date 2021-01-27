@@ -60,7 +60,6 @@ library:
   - array
   - bytestring
   - ghc-paths
-  - ghc
   - directory
   - filepath
   - say
@@ -74,6 +73,7 @@ library:
   - async
   - tar
   - html-entities
+  - ghc-lib
 
 executables:
   izuna-builder-exe:
