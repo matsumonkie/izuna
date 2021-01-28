@@ -18,7 +18,7 @@ let
                 haskellPackagesNew.callPackage ./servant-multipart.nix { };
 
               izuna-builder =
-                haskellPackagesNew.callPackage ./project.nix { ghcVersion = "test"; };
+                haskellPackagesNew.callPackage ./project.nix { ghcVersion = "${compiler}"; };
             };
           };
         };
