@@ -7,6 +7,8 @@ let
 
   mkConfig = compiler: {
     allowBroken = true;
+    doCheck = false;
+    doHaddock = false;
     packageOverrides = pkgs: rec {
       haskell = pkgs.haskell // {
         packages = pkgs.haskell.packages // {
@@ -15,8 +17,8 @@ let
               servant-multipart =
                 haskellPackagesNew.callPackage ./servant-multipart.nix { };
 
-              project =
-                haskellPackagesNew.callPackage ./project.nix { };
+              izuna-builder =
+                haskellPackagesNew.callPackage ./project.nix { ghcVersion = "test"; };
             };
           };
         };
@@ -26,8 +28,10 @@ let
 
   mkPkgs = compiler: import extractedTarball { config = ( mkConfig compiler ); };
 
+  mkIzunaBuilder = ghcVersion: (mkPkgs ghcVersion).haskell.packages."${ghcVersion}".izuna-builder;
 in
-{ izuna-builder-8101 = (mkPkgs "ghc8101").haskellPackages.callPackage ./project.nix { };
-  izuna-builder-8102 = (mkPkgs "ghc8102").haskellPackages.callPackage ./project.nix { };
-  izuna-builder-8103 = (mkPkgs "ghc8103").haskellPackages.callPackage ./project.nix { };
+{ izuna-builder-8101 = (mkPkgs "ghc8101").haskell.packages.ghc8101.izuna-builder;
+  izuna-builder-8102 = mkIzunaBuilder "ghc8102";
+  izuna-builder-8103 = mkIzunaBuilder "ghc8103";
+  pkgs = import extractedTarball { };
 }

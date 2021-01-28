@@ -2,10 +2,10 @@
 , directory, filepath, foreign-store, generic-lens, ghc-lib
 , ghc-lib-parser, ghc-paths, hpack, hspec, html-entities, mtl
 , safe-exceptions, say, servant, servant-multipart, servant-server
-, stdenv, tar, text, wai, warp
+, stdenv, tar, text, wai, warp, ghcVersion
 }:
 mkDerivation {
-  pname = "izuna-builder";
+  pname = "izuna-builder-${ghcVersion}";
   version = "0.1.0.0";
   src = ./.;
   isLibrary = true;
