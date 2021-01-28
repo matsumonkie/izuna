@@ -11,3 +11,5 @@ package-lock.json
 *.dhall
 .#*
 dist/
+dist-newstyle/
+result
