@@ -33,5 +33,5 @@ in
 { izuna-builder-8101 = (mkPkgs "ghc8101").haskell.packages.ghc8101.izuna-builder;
   izuna-builder-8102 = mkIzunaBuilder "ghc8102";
   izuna-builder-8103 = mkIzunaBuilder "ghc8103";
-  pkgs = import extractedTarball { };
+  pkgs = import extractedTarball { }; # for dev
 }
