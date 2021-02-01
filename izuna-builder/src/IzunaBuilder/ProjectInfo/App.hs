@@ -241,6 +241,24 @@ convertHieToRawModule hie@Ghc.HieFile {..} =
           , nodeIdentifiers = mempty
           }
 
+-- * remove useless nodes
+
+-- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
+-- children, we get rid of it
+removeUselessNodes :: RawModule a b -> RawModule a b
+removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
+  rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
+  where
+    go :: HieAST a -> [HieAST a] -> [HieAST a]
+    go hieAst@Ghc.Node{..} acc =
+      case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
+        ([], False) -> acc
+        (_, False) -> foldr go [] nodeChildren ++ acc
+        _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
+
+    hasSpecializedType :: [a] -> Bool
+    hasSpecializedType = not . List.null
+
 
 -- * group by line
 
@@ -260,20 +278,8 @@ groupByLine moduleAst2 =
       case isOneLine span of
         False -> Nothing
         True  -> Just _span_lineStart
--- * remove useless nodes
 
--- | given a tree, if a node of this tree doesn't contain any informations and doesn't have any
--- children, we get rid of it
-removeUselessNodes :: RawModule a b -> RawModule a b
-removeUselessNodes rawModule@RawModule{ _rawModule_hieAst = ast  } =
-  rawModule { _rawModule_hieAst = ast { Ghc.nodeChildren = foldr go [] $ Ghc.nodeChildren ast }}
-  where
-    go :: HieAST a -> [HieAST a] -> [HieAST a]
-    go hieAst@Ghc.Node{..} acc =
-      case (nodeChildren, hasSpecializedType $ nodeInfo & Ghc.nodeType) of
-        ([], False) -> acc
-        (_, False) -> foldr go [] nodeChildren ++ acc
-        _ -> hieAst { Ghc.nodeChildren = foldr go [] nodeChildren } : acc
 
-    hasSpecializedType :: [a] -> Bool
-    hasSpecializedType = not . List.null
+test :: Int
+test =
+  1 + 1

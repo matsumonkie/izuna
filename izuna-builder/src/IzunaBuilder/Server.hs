@@ -66,10 +66,6 @@ type ProjectInfoApi =
     :> MultipartForm Tmp (MultipartData Tmp) :> Post '[JSON] ()
 
 
-projectInfoServer :: ServerT ProjectInfoApi AppM
-projectInfoServer = do
-  saveProjectInfoHandler
-
 -- ** health api
 
 type HealthApi =
@@ -79,6 +75,9 @@ healthServer :: ServerT HealthApi AppM
 healthServer = do
   return "running!"
 
+projectInfoServer :: ServerT ProjectInfoApi AppM
+projectInfoServer = do
+  saveProjectInfoHandler
 
 -- * app
 
