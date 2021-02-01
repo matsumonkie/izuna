@@ -6,11 +6,12 @@
 
 Izuna brings a richer GitHub interface by showing type annotations directly in your browser.
 
-![gif demo](./demo.gif)
+![gif unified demo 1](./unified.gif)
+![gif split demo 2](./split.gif)
 
 ## Requirements
 
-As of today, the izuna plugin is only available for Chrome and your Haskell project needs to be using GHC 8.10.1.
+As of today, the izuna plugin is only available for Chrome and your Haskell project needs to be using either GHC 8.10.1 or GHC 8.10.2
 
 ## How do I use it?
 
@@ -33,21 +34,14 @@ A more detailed worklow is:
 🔧: building<br/>
 
 
-| available | feature                | description                                                |
-|-----------|------------------------|------------------------------------------------------------|
-| ✅        | Type annotation        | Show type annotation for your haskell code                 |
-| ✅        | Unified diff view mode | Works correctly for unified diff view mode                 |
-| ✅        | Chrome support         |                                                            |
-| 🔧        | Firefox support        |                                                            |
-| 🔧        | Split diff view mode   |                                                            |
-| 🔧        | GHC 8.10.2 support     | only GHC 8.10.1 is available atm                           |
-| 🔧        | Security               | Make sure private repos are only accessible by their owner |
-| 🔧        | Syntax color           | Display richer Haskell syntax color                        |
-
-## Caveats
-
-- Izuna is as of today (December 2020) a first draft and might fail in some scenarios.
-- There is no authentication/authorization present at the moment. Any individual that has the tuple **owner/repository/commitId** for your project will be able to access your code. Private repos should use Izuna at their own risks.
+| available | feature                      | description                                          |
+|-----------|------------------------------|------------------------------------------------------|
+| ✅        | Type annotation              | Show type annotation for your haskell code           |
+| ✅        | Split/Unified diff view mode | Works correctly for unified and split diff view mode |
+| ✅        | Chrome support               |                                                      |
+| ✅        | Security                     | Source code is no longer stored                      |
+| ✅        | Syntax color                 | Display richer Haskell syntax color                  |
+| 🔧        | GHC 8.10.3 support           | only GHC 8.10.1 and GHC 8.10.2 are available atm     |
 
 ## How to build
 
