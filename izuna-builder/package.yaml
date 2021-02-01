@@ -73,8 +73,7 @@ library:
   - async
   - tar
   - html-entities
-  - ghc-lib
-  - ghc-lib-parser
+  - ghc
 
 executables:
   izuna-builder-exe:
