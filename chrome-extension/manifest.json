@@ -1,16 +1,16 @@
 {
   "name": "Izuna",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "icons": { "16": "icons/izuna-16.png",
              "48": "icons/izuna-48.png",
              "128": "icons/izuna-128.png"
            },
   "description": "Better Haskell code review for Github!",
-  "permissions": [ "declarativeContent", // make it possible for the user to customize izuna's behaviour (enable/disable izuna)
-                   "tabs",               // communicate between content and background script, listen to tab updates
-                   "storage",            // store user prefs
-                   "https://izuna.app/", // fetch izuna information from izuna server
-                   "http://localhost/"   // dev debug
+  "permissions": [ "declarativeContent",
+                   "tabs",
+                   "storage",
+                   "https://izuna.app/",
+                   "http://localhost/"
                  ],
   "background": {
     "scripts": [ "dist/background.js" ],
