@@ -56,6 +56,23 @@ parseHieFiles hieDirectories = do
     liftIO $ readCompatibleHieFileOrExit nameCache hieFilePath
 
 
+-- * readCompatibleHieFileOrExit
+
+
+-- | Read a .hie file, exiting if it's an incompatible version.
+readCompatibleHieFileOrExit :: NameCache -> FilePath -> IO HieFile
+readCompatibleHieFileOrExit nameCache path = do
+  (HieFileResult{..}, _) <- readHieFile nameCache path
+  case (hieVersion == hie_file_result_version) of
+    True ->
+      return hie_file_result
+
+    False -> do
+      putStrLn $ "incompatible hie file: " <> path
+      putStrLn $ "    expected .hie file version " <> show hieVersion <> " but got " <> show hie_file_result_version
+      putStrLn $ "    HieParser must be built with the same GHC version"
+               <> " as the project it is used on"
+      exitFailure
 -- * get hie files path in
 
 
@@ -93,22 +110,3 @@ getHieFilePathsIn path = do
 
     else
       return []
-
-
--- * readCompatibleHieFileOrExit
-
-
--- | Read a .hie file, exiting if it's an incompatible version.
-readCompatibleHieFileOrExit :: NameCache -> FilePath -> IO HieFile
-readCompatibleHieFileOrExit nameCache path = do
-  (HieFileResult{..}, _) <- readHieFile nameCache path
-  case (hieVersion == hie_file_result_version) of
-    True ->
-      return hie_file_result
-
-    False -> do
-      putStrLn $ "incompatible hie file: " <> path
-      putStrLn $ "    expected .hie file version " <> show hieVersion <> " but got " <> show hie_file_result_version
-      putStrLn $ "    HieParser must be built with the same GHC version"
-               <> " as the project it is used on"
-      exitFailure
