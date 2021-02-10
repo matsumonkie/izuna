@@ -15,9 +15,12 @@ As of today, the izuna plugin is only available for Chrome and your Haskell proj
 
 ## How do I use it?
 
-If you only want to play with it, you need to install the izuna plugin in chrome by going to `chrome://extensions/` and clicking `load unpacked` (then select the `chrome-extension` folder). Then you can either go to one of the [izuna-example](https://github.com/matsumonkie/izuna-example/pulls) pull requests or submit one.
+Go to the [chrome webstore](https://chrome.google.com/webstore/detail/izuna/fdddagbfkgicjkeijmbfdcmjeldegfdi) and install the izuna chrome extension.
+Then you can either go to one of the [izuna-example](https://github.com/matsumonkie/izuna-example/pulls) pull requests or submit one to see izuna in action.
 
-To use it for your own project, you'll need to enable the github action [izuna-action](https://github.com/matsumonkie/izuna-action/).
+To use it for your own project, you'll also need to enable the github action [izuna-action](https://github.com/matsumonkie/izuna-action/).
+
+For development purpose, you need to install the izuna plugin in chrome by going to `chrome://extensions/` and clicking `load unpacked` (then select the `chrome-extension` folder).
 
 ## How does it work?
 
